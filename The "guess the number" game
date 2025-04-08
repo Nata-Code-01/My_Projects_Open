@@ -1,0 +1,194 @@
+from abc import *  # Импортируем библиотеку для работы с абстрактными классами.
+import random  # Импортируем библиотеку для генерации случайных чисел.
+import tkinter as tk  # Импортируем библиотеку для создания графического интерфейса.
+from tkinter import messagebox, ttk  # Импортируем необходимые компоненты из библиотеки Tkinter.
+
+
+# Абстрактный класс для генераторов.
+class Generator(ABC):
+    __answer_type = None  # Хранения типа ответа.
+
+    @property
+    def answer_type(self):
+        return self.__answer_type  # Доступ к типу ответа.
+
+    @abstractmethod
+    def next(self):
+        pass  # Абстрактный метод, который должен быть реализован в подклассах.
+
+
+# Класс генератора чисел.
+class NumGenerator:
+    def __init__(self, lower, upper, max_att):
+
+        # Инициализация генератора чисел с заданными границами и максимальным количеством попыток:
+
+        self.lower_bound = lower  # Нижняя граница для загадываемого числа.
+        self.upper_bound = upper  # Верхняя граница для загадываемого числа.
+        self.secret_number = random.randint(lower, upper)  # Загадать случайное число в заданном диапазоне.
+        self.max_attempts = max_att  # Максимальное количество попыток.
+        self.attempts = 0  # Счетчик попыток.
+
+    def make_guess(self, guess):             # Обработка ответа игрока.
+
+        self.attempts += 1                   # Увеличиваем счетчик попыток
+        if guess < self.secret_number:
+            return "Слишком низкое число."   # Подсказка, если число меньше загаданного.
+        elif guess > self.secret_number:
+            return "Слишком высокое число."  # Подсказка, если число больше загаданного.
+        else:
+            return "Поздравляю! Вы угадали число!"  # Сообщение о победе.
+
+    def is_game_over(self):   # Проверка, закончилась ли игра (достигнуто ли максимальное количество попыток).
+
+        return self.attempts >= self.max_attempts  # Возвращает True, если игра окончена.
+
+    def get_attempts_left(self): # Возвращает количество оставшихся попыток.
+
+        return self.max_attempts - self.attempts
+
+    def get_hint(self):                          # Возвращает подсказку о четности загаданного числа.
+
+        if self.secret_number % 2 == 0:
+            return "Загаданное число четное."    # Подсказка, что число четное.
+        else:
+            return "Загаданное число нечетное."  # Подсказка, что число нечетное.
+
+    def reset_game(self):                        # Сброс игры для новой попытки.
+
+        self.secret_number = random.randint(self.lower_bound, self.upper_bound)  # Загадать новое число.
+        self.attempts = 0  # Обнулить счётчик попыток.
+
+
+# Класс для приложения игры "Угадай число":
+class GuessingGameApp:
+    def __init__(self, master):    # Инициализация графического интерфейса приложения.
+
+        self.master = master                      # Основное окно приложения.
+        self.master.title("Игра 'Угадай число'")  # Заголовок окна.
+        self.game = None                          # Игра будет инициализирована позже.
+
+        # Создание элементов интерфейса:
+
+        self.label = tk.Label(master, text="Выберите уровень сложности:")
+        self.label.pack()                         # Отображение метки.
+
+        # Кнопки для выбора уровня сложности.
+
+        self.easy_button = tk.Button(master, text="Легкий", command=lambda: self.start_game(1, 10, 5))
+        self.easy_button.pack()
+
+        self.medium_button = tk.Button(master, text="Средний", command=lambda: self.start_game(1, 50, 7))
+        self.medium_button.pack()
+
+        self.hard_button = tk.Button(master, text="Сложный", command=lambda: self.start_game(1, 100, 10))
+        self.hard_button.pack()
+
+        # Поле для ввода предположения и метки для информации:
+
+        self.entry = tk.Entry(master)  # Поле для ввода числа.
+        self.attempts_label = tk.Label(master, text="")            # Метка для отображения оставшихся попыток.
+        self.history_label = tk.Label(master, text="")             # Метка для отображения истории попыток.
+        self.progress = ttk.Progressbar(master, maximum=10)        # Шкала для кол-ва попыток.
+
+        # Кнопка "Выход":
+
+        self.exit_button = tk.Button(master, text="Выход", command=master.quit)
+        self.exit_button.pack(side=tk.BOTTOM)
+
+        # Инициализация кнопки "Подсказка":
+
+        self.hint_button = tk.Button(master, text="Получить подсказку", command=self.give_hint)
+        self.hint_button.pack_forget()                             # Скрываем кнопку до начала игры.
+
+    def start_game(self, lower_bound, upper_bound, max_attempts):  # Запуск игры с заданными параметрами.
+
+        self.game = NumGenerator(lower_bound, upper_bound, max_attempts)  # Инициализация игры.
+        self.label.config(text=f"Угадайте число от {self.game.lower_bound} до {self.game.upper_bound}")
+
+        # Скрыть кнопки выбора сложности после начала игры.
+
+        self.easy_button.pack_forget()
+        self.medium_button.pack_forget()
+        self.hard_button.pack_forget()
+
+        self.entry.pack()  # Показать поле ввода.
+        self.submit_button = tk.Button(self.master, text="Угадать", command=self.submit_guess)
+        self.submit_button.pack()  # Кнопка для отправки предположения.
+
+        # Обновление меток информации.
+
+        self.attempts_label.config(text=f"Осталось попыток: {self.game.max_attempts}")
+        self.attempts_label.pack()
+
+        self.history_label.config(text="История попыток: ")
+        self.history_label.pack()
+
+        self.history = []  # Список для хранения истории попыток.
+        self.progress.pack()  # Показать прогресс.
+        self.progress.config(maximum=self.game.max_attempts)
+
+        self.hint_button.pack() # Показываем кнопку "Подсказка" после начала игры.
+
+    def submit_guess(self): # Обработка ответа.
+
+        try:
+            guess = int(self.entry.get())  # Получить ответ.
+            result = self.game.make_guess(guess)  # Проверить ответ.
+
+            if result == "Поздравляю! Вы угадали число!":
+                messagebox.showinfo("Результат", result)  # Показать сообщение о победе.
+                self.ask_to_continue()                         # Запросить продолжение или выход.
+            else:
+                messagebox.showinfo("Результат", result)  # Показать результат попытки.
+
+                if self.game.is_game_over():
+                    messagebox.showinfo("Игра окончена",
+                                        f"Вы исчерпали все попытки.\nЗагаданное число было: {self.game.secret_number}")
+                    self.ask_to_continue()  # Запросить продолжение или выход.
+                else:
+                    attempts_left = self.game.get_attempts_left()  # Обновить оставшиеся попытки.
+                    self.attempts_label.config(text=f"Осталось попыток: {attempts_left}")
+                    self.history.append(guess)  # Добавить предположение в историю.
+                    self.history_label.config(text="История попыток: " + ", ".join(map(str, self.history)))
+                    self.progress['value'] = self.game.attempts  # Обновление прогресса.
+        except ValueError:
+            messagebox.showerror("Ошибка", "Пожалуйста, введите целое число.")  # Обработка ошибок ввода.
+
+        self.entry.delete(0, tk.END)  # Очищаем поле ввода.
+
+    def give_hint(self):  # Выводит подсказку о четности загаданного числа.
+
+        if self.game:
+            hint = self.game.get_hint()                  # Получить подсказку.
+            messagebox.showinfo("Подсказка", hint)  # Показать подсказку.
+
+    def reset_game(self):  # Сбросить игру и обновить интерфейс.
+
+        if self.game:
+            self.game.reset_game()  # Сбросить состояние игры.
+            self.label.config(text=f"Угадайте число от {self.game.lower_bound} до {self.game.upper_bound}")
+            self.entry.delete(0, tk.END)  # Очистить поле ввода.
+            self.attempts_label.config(text=f"Осталось попыток: {self.game.max_attempts}")
+            self.history = []  # Очистить историю попыток.
+            self.history_label.config(text="История попыток: ")
+            self.progress['value'] = 0  # Сброс прогресса.
+
+    def ask_to_continue(self): # Запрос на продолжение игры.
+
+        response = messagebox.askyesno("Продолжить игру", "Хотите продолжить игру?")
+        if response:
+            self.reset_game()  # Начать новую игру.
+        else:
+            self.master.quit()  # Выйти из игры.
+
+
+def main():
+    root = tk.Tk()  # Создаем основное окно приложения.
+    root.geometry("400x400")  # Установка размера окна (ширина x высота).
+    app = GuessingGameApp(root)  # Инициализация приложения.
+    root.mainloop()  # Запуск главного цикла приложения.
+
+
+if __name__ == "__main__":
+    main()  # Запуск функции main.
