@@ -1,4 +1,5 @@
-## Задание. Построить графики активационных функций вида  $F = \frac{1}{1 + e^{-x}}$ для $x_1 \in [-5, 5]$ с шагом 0,1 и для $x_2 = a_1 * x_1$, где $a_1 = 10$.
+#Ссылка на коллаб: https://colab.research.google.com/drive/1tStoJA58xDq5aQfThTtSw9r1sSJV_uIh?usp=sharing
+# Задание. Построить графики активационных функций вида  $F = \frac{1}{1 + e^{-x}}$ для $x_1 \in [-5, 5]$ с шагом 0,1 и для $x_2 = a_1 * x_1$, где $a_1 = 10$.
 
 import numpy as np
 import matplotlib.pyplot as plt
