@@ -1,0 +1,160 @@
+'''
+Для уравнения вида:
+$$\ddot{x} + x = \varepsilon(x^2 - 16)\dot{x} \quad \quad \quad (*)$$
+
+ - построить периодическое решение с точность $O(\varepsilon^3)$,
+ - найти осреднённое решение (и/или упростить уравнение, исключив быструю переменную),
+ - сравнить получившиеся решения с численным интегрированием.
+'''
+1) Метод малого параметра.
+
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.integrate import solve_ivp
+import sympy as sp
+
+def F(x, e):                                       # Функция, определяющая правую часть уравнения.
+    return (e*omega*(x**2 - 16)*x.diff(t))
+
+    n = 3                                              # Порядок точности.              
+t = sp.symbols('t')
+e = sp.symbols('e')                                # Параметр как символ.
+
+x = 0                                              # Создаём переменную, отвечающую за вид решения.
+omega = 1                                          # Создаём переменную, отвечающую за вид частоты.
+
+for i in range(1, n + 1):                          # Заполняем вид x.
+    b_i = sp.symbols('b' + str(i))
+    omega += e**i*b_i
+    
+for i in range(0, n + 1):                          # Заполняем вид omega.
+    x_i = sp.Function('x' + str(i))(t)
+    x += e**i*x_i
+x
+
+eq = sp.Eq(sp.expand(x.diff(t, 2)*omega**2 + x), sp.expand(F(x, e)))   # Создаём уравнение (**).
+Eq = []                                                                # Список, который будет хранить равенства для разных степеней параметра.
+
+for i in range(n + 1):                                                 # Приравниваем при одинаковых степенях параметра
+    coeff1 = eq.lhs.coeff(e, i)                                        # и записываем в список Eq.
+    coeff2 = eq. rhs.coeff(e, i)
+    eq_i = sp.Eq(coeff1, coeff2)
+    Eq.append(eq_i)
+
+print("При E^0 получим:\n")
+Eq[0]
+
+solution = sp.dsolve(Eq[0])
+solution
+
+A, phi, x0 = sp.symbols('A, phi, x0')
+X0 = A * sp.cos(t + phi)
+X0
+
+print("При E^1 получим:\n")
+Eq[1]
+
+A = 8
+X0 = X0.subs({sp.symbols('A'): 8})
+X0
+
+Eq1 = Eq[1].subs({sp.Function('x0')(t): X0, sp.symbols('b1'): 0})
+sp.simplify(Eq1)
+
+A1 , phi1 = sp.symbols('A1, phi')
+
+print("При E^2 получим:\n")
+Eq[2]
+
+#2) Метод усреднения.
+t = sp.symbols('t')
+a = sp.Function('a')(t)
+e = sp.symbols('e', positive=True)
+
+eq = sp.Eq(sp.Derivative(a, t), e * (a**3 / 4 - 16 * a))              # Определение уравнения.
+
+sol = sp.dsolve(eq, a)                                                # Решение уравнения.
+
+sol[1]                                                                # Полученное решение.
+
+# 3) Сравнение с численным интегрированием.
+
+import numpy as np
+import matplotlib.pyplot as plt
+#from scipy.integrate import odeint
+
+def f(x, t):                                     # Система ОДУ.
+    x1, x2 = x
+    dx1dt = x2
+    dx2dt = -x1 + epsilon * (x1**2 - 16) * x2
+    return np.array([dx1dt, dx2dt]) 
+
+    def litle_param(t, eps):                         # Решение, полученное методом малого параметра.
+    tau = t * (1 - 16 * eps**2)
+    return (8 * np.cos(tau + phi) + 16 * eps * np.sin(3 * (tau + phi)))
+
+    def Runge_kutta_sys(f, t0, tn, x0, n):           # Функция, реализующая метод Рунге-Кутта 4-го порядка для системы ОДУ.
+    m = len(x0)                                  # Определяем количество уравнений.
+    x = np.zeros((n, m))                         # Массив решений.
+    x[0] = x0                                    # Начальные условия.
+    t = np.linspace(t0, tn, n)                   # Разбиение отрезка.
+    h = t[1] - t[0]                              # Шаг разбиения.
+
+    for i in range(n - 1):                       # Реализация метода.
+        k1 = f(x[i], t[i])
+        k2 = f(x[i] + h / 2 * k1, t[i] + h / 2)
+        k3 = f(x[i] + h / 2 * k2, t[i] + h / 2)
+        k4 = f(x[i] + h * k3, t[i] + h)
+        K = (k1 + 2 * k2 + 2 * k3 + k4) / 6
+        x[i + 1] = x[i] + h * K
+    return t, x
+
+    epsilon = 0.001                                  # Значение малого параметра.
+phi = 0                                          # Значение угла фи.
+
+t0 = 0                                           # Правый конец временного интервала.
+tn = 50                                          # Левый конец временного интервала.
+
+n = 501                               
+t = np.linspace(t0, tn, n)
+
+x0 = [8, 0]                                      # Начальные условия.
+
+t, sol = Runge_kutta_sys(f, t0, tn, x0, n)       # Решение методом Рунге-Кутта (численное решение).
+
+plt.figure(figsize=(10, 5))
+plt.plot(t, sol[:, 0], 'g-', lw = 2, label = 'Метод Рунге-Кутта.')
+plt.plot(t, litle_param(t, epsilon), 'r--', label = 'Метод малого параметра.')
+plt.xlabel('t')
+plt.ylabel('x(t)')
+plt.title('Сравнение решений.')
+plt.grid(True)
+plt.legend()
+plt.show()
+
+def avg_method(t, C1, C2, eps):                  # Решение, полученное методом усреднения.
+    return (8 * np.sqrt(1 / (C1 * np.exp(32 * eps * t) + 1)) * np.cos(t + C2))
+
+epsilon = 0.001                                  # Значение малого параметра.
+C1 = 0.01                                        # Значение первой константы.
+C2 = 0                                           # Значение второй константы.
+
+t0 = 0                                           # Правый конец временного интервала.
+tn = 50                                          # Левый конец временного интервала.
+
+n = 501
+t = np.linspace(t0, tn, n)
+
+x0 = [8, 0]                                      # Начальные условия.
+
+t, sol = Runge_kutta_sys(f, t0, tn, x0, n)       # Решение методом Рунге-Кутта (численное решение).
+
+plt.figure(figsize=(10, 5))
+plt.plot(t, sol[:, 0], 'y-', lw = 2, label = 'Метод Рунге-Кутта.')
+plt.plot(t, analytical_sol(t, C1, C2, epsilon), 'm-.', label='Метод усреднения.')
+plt.xlabel('t')
+plt.ylabel('x(t)')
+plt.title('Сравнение решений.')
+plt.grid(True)
+plt.legend()
+plt.show()
