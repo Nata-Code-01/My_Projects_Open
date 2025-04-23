@@ -1,0 +1,258 @@
+#include<iostream>
+using namespace std;
+//------------------------------------------Класс "Дроби"------------------------------------------------------
+class Fraction
+{
+	int num, den;                                      // Скрытые поля класса Fraction: числитель, знаменатель.
+public:                                                // Открытые поля класса Fraction.
+	class Error                               // Класс - "Ошибка".
+	{
+	public:
+		char s[100];                                 // Поле вида ошибки.
+		char where[100];                             // Поле места ошибки.
+		Error(const char* str1, const char* str2)    // Конструктор класса Error.
+		{
+			strcpy_s(s, str1);
+			strcpy_s(where, str2);
+		}
+		Error()                                      // Конструктор класса Error по умолчанию.
+		{
+			s[0] = '\0';
+			where[0] = '\0';
+		}
+	};                                        // Конец класса - "Ошибка".
+	Fraction() :num(1), den(1)                          // Конструктор класса Fraction по умолчанию.
+	{
+		cout << "Сработал конструктор по умолчанию.\n";
+	}
+	Fraction(int a, int b)                             // Конструктор класса Fraction с двумя аргументами.
+	{
+		num = a;
+		if (b == 0)
+		{
+			throw Error("Знаменатель не может равняться 0!\n","конструктор.\n");
+		}
+			den = b;
+		cout << "Сработал конструктор с двумя аргументами.\n";
+	}
+	~Fraction()                                        // Деструктор класса Fraction.
+	{
+		
+	}
+	void cut();                                        // Функция-член "Сокращения дроби".
+
+	//Перегруженные операторы:
+
+	Fraction operator+(Fraction b);
+	Fraction operator-(Fraction b);
+	Fraction operator*(Fraction b);
+	Fraction operator/(Fraction b);
+	bool operator<(Fraction b);
+	bool operator>(Fraction b);
+	bool operator==(Fraction b);
+
+	//Дружественные функции(перегруженные операторы):
+
+	friend istream& operator>>(istream& s, Fraction& obj);
+	friend ostream& operator<<(ostream& s, Fraction obj);
+};
+//-------------------------------------------------------------------------------------------------------------------
+int main()
+{
+	setlocale(LC_ALL, "Russian");
+	int n;
+	Fraction s;                                       // Объект, хранящий результаты действий.
+	bool While = true;
+	while (While)                                     // Цикл - "Меню".
+	{
+		cout << "Что вы хотите выполнить?\n";
+		cout << "1) Сложение дробей.\n";
+		cout << "2) Вычитание из первой дроби второй.\n";
+		cout << "3) Вычитание из второй дроби первой.\n";
+		cout << "4) Умножение дробей.\n";
+		cout << "5) Деление дробей.\n";
+		cout << "6) Сравнение дробей.\n";
+		cout << "7) Сокращение дробей.\n";
+		cout << "8) Выход из программы.\n";
+		cout << "Введите номер пункта: ";
+		cin >> n;
+		if(n==8)                                      // Выход из цикла - "Меню".
+		{
+			While = false;
+			break;
+		}
+		int x, y;
+		Fraction d1, d2;
+		try {
+			cout << "Введите числитель и знаменатель первой дроби\n";
+			cin >> d1;
+			cout << "Введите числитель и знаменатель второй дроби\n";
+			cin >> x >> y;
+			Fraction d2(x, y);
+			cout << "Введённые вами дроби: " << d1 << '\t' << d2;
+			cout << endl;
+			switch (n)
+			{
+			case 1:                                        // Сложение дробей.
+				s = d1 + d2;
+				cout << d1 << " + " << d2 << " = " << s << endl;
+				break;
+			case 2:                                        // Вычитание дробей (из первой вторую).
+				s = d1 - d2;
+				cout << d1 << " - " << d2 << " = " << s << endl;
+				break;
+			case 3:                                        // Вычитание дробей (из второй первую).
+				s = d2 - d1;
+				cout << d2 << " - " << d1 << " = " << s << endl;
+				break;
+			case 4:                                        // Умножение дробей.
+				s = d1 * d2;
+				cout << d1 << " * " << d2 << " = " << s << endl;
+				break;
+			case 5:                                        // Деление дробей.
+				s = d1 / d2;
+				cout << d1 << " : " << d2 << " = " << s << endl;
+				break;
+			case 6:                                        // Сравнение дробей.
+				if (d1 < d2)
+				{
+					cout << "Дробь " << d1 << " меньше дроби " << d2 << endl;
+				}
+				else if (d1 > d2)
+				{
+					cout << "Дробь " << d1 << " больше дроби " << d2 << endl;
+				}
+				else
+				{
+					cout << "Дробь " << d1 << " равна дроби " << d2 << endl;
+				}
+				break;
+			case 7:                                         // Сокращение дробей.
+				cout << "Сокращённые дроби имеют вид:\n" << d1 << " = ";
+				d1.cut();
+				cout << d1 << endl << d2 << " = ";
+				d2.cut();
+				cout << d2 << endl;
+				break;
+			default:                                        // Предостережение.
+				cout << "Некорректно задан запрос. Пожалуйста, введите номер пункта от 1 до 8.\n";
+				break;
+			}
+		}
+		catch (Fraction::Error e)
+		{
+			cout << "Некорректный ввод данных!" << e.s << "Виноват " << e.where;
+		}
+	}
+	system("pause");
+	return 0;
+}
+
+//-----------------------------------------------------------------------------------------------------------------------
+
+Fraction Fraction::operator+(Fraction b)               // Оператор сложения.        
+{
+	Fraction s;
+	s.num = num * b.den + b.num * den;
+	s.den = den * b.den;
+	s.cut();
+	return s;
+}
+Fraction Fraction::operator-(Fraction b)               // Оператор вычитания.
+{
+	Fraction s;
+	s.num = num * b.den - b.num * den;
+	s.den = den * b.den;
+	s.cut();
+	return s;
+}
+Fraction Fraction::operator*(Fraction b)               // Оператор умножения.
+{
+	Fraction s;
+	s.num = num * b.num;
+	s.den = den * b.den;
+	s.cut();
+	return s;
+}
+Fraction Fraction::operator/(Fraction b)               // Оператор деления.
+{
+	Fraction s;
+	s.num = num * b.den;
+	s.den = den * b.num;
+	s.cut();
+	return s;
+}
+bool Fraction::operator<(Fraction b)                   // Оператор "меньше".
+{
+	Fraction s, d;
+	s.num = num * b.den;
+	d.num = b.num * den;
+	if (s.num < d.num)
+		return true;
+	return false;
+}
+bool Fraction::operator>(Fraction b)                   // Оператор "больше".
+{
+	Fraction s, d;
+	s.num = num * b.den;
+	d.num = b.num * den;
+	if (s.num > d.num)
+		return true;
+	return false;
+}
+bool Fraction::operator==(Fraction b)                  // Оператор "равно".
+{
+	Fraction s, d;
+	s.num = num * b.den;
+	d.num = b.num * den;
+	if (s.num == d.num)
+		return true;
+	return false;
+}
+istream& operator>>(istream& s, Fraction& obj)         // Оператор "ввода".
+{
+	s >> obj.num >> obj.den;
+	if (obj.den == 0)
+		throw Fraction:: Error("Знаменатель не может равняться 0!\n","оператор ввода.\n");
+	return s;
+}
+ostream& operator<<(ostream& s, Fraction obj)          // Оператор "вывода".
+{
+	if (obj.den == 1)
+	{
+		 s<< obj.num;
+	}
+
+	else
+	{
+		s<< obj.num << "/" << obj.den;
+	}
+	return s;
+}
+void Fraction::cut()                                   // Функция сокращения дроби.
+{
+	int tnum, tden, temp, gcd;
+	tnum = abs(num);
+	tden = abs(den);
+if (tnum == 0)
+	{
+		num = 0;
+		den = 1;
+		return;
+	}
+	while (tnum != 0)
+	{
+
+		if (tnum < tden)
+		{
+			temp = tnum;
+			tnum = tden;
+			tden = temp;
+		}
+
+		tnum = tnum - tden;
+	}
+	gcd = tden;
+	num = num / gcd;
+	den = den / gcd;
+}
