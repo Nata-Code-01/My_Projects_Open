@@ -1,0 +1,93 @@
+#Задание 1. В файле transactions.csv содержится статистика продаж. Требуется узнать его размеры (количество полей и записей).
+
+trs = pd.read_csv('transactions.csv')                                           # Считываем файл transactions.csv.
+
+print("Размер таблицы из файла transactions.csv: ", trs.shape)                  # Выводим размеры файла.
+
+#Задание 2. Определите, какой товар в transactions.csv (столбец Product) упоминается чаще всего? ... реже всего?
+
+print(trs['Product'].head())                                                    # Выведем первые 5 строк таблицы.
+
+product_counts = trs['Product'].value_counts()                                  # Посчитаем для каждого товара количество упоминаний в таблице.
+print(product_counts)
+
+print("Чаще всего упоминается товар: ", trs['Product'].value_counts().idxmax()) # Определим самый часто упоминаемый продукт.
+print("Чаще всего упоминается товар: ", trs['Product'].value_counts().idxmin()) # Определим самый редко упоминаемый продукт.
+
+#Задание 3. По данным файла power.csv рассчитайте суммарное потребление стран Прибалтики (Латвия, Литва и Эстония) категорий 4, 12 и 21 за период с 2005 по 2010 года. Не учитывайте в расчетах отрицательные значения quantity.
+
+pwr = pd.read_csv('power.csv')                                                  # Загружаем данные из файла power.csv.
+
+# Производим постепенную фильтрацию по заданному условию задачи.
+
+# Фильтрация по годам и столбцу quantity:
+
+pwr_year = pwr[(pwr['year'] >= 2005) & (pwr['year'] <= 2010) & pwr['quantity'] >= 0]
+# print(pwr_year)
+
+# Фильтрация по странам прибалтики:
+
+pwr_year_country = pwr_year[(pwr_year['country'] == 'Latvia') | (pwr_year['country'] == 'Estonia') | (pwr_year['country'] == 'Lithuania')]
+# print(pwr_year_country)
+
+# Фильтрация по категориям:
+
+pwr_year_country_category = pwr_year_country[(pwr_year_country['category'] == 4) | (pwr_year_country['category'] == 12) | (pwr_year_country['category'] == 21)]
+print("Итоговая отфильтрованная таблица: \n", pwr_year_country_category, sep='')
+
+sum_whole = pwr_year_country_category['quantity'].sum()                         # Рассчитываем суммарное потребление стран прибалтикик вместе.
+
+print(f"Суммарное потребление стран Прибалтики = {sum_whole}.")                 # Выводим результат.
+
+sum_Latvia = pwr_year_country_category[(pwr_year_country_category['country'] == 'Latvia')]['quantity'].sum()
+print(f"Суммарное потребление Латвии = {sum_Latvia}.")
+
+sum_Estonia = pwr_year_country_category[(pwr_year_country_category['country'] == 'Estonia')]['quantity'].sum()
+print(f"Суммарное потребление Эстонии = {sum_Estonia}.")
+
+sum_Lithuania = pwr_year_country_category[(pwr_year_country_category['country'] == 'Lithuania')]['quantity'].sum()
+print(f"Суммарное потребление Литвы = {sum_Lithuania}.")
+
+# print(sum_Latvia + sum_Estonia + sum_Lithuania)
+
+#Задание 4. Отфильтруйте строки в DataFrame pwr, у котороых 'quantity' больше 10000 или 'year' равен 2012.
+
+pwr = pd.read_csv('power.csv')                                                  # Загружаем данные из файла power.csv.
+
+filt = pwr[(pwr['quantity'] > 10000) | (pwr['year'] == 2012)]                   # Производим фильтрацию по заданным условиям.
+print(filt)                                                                     # Выводим результат на экран.
+
+#Задание 5. Отсортируйте DataFrame pwr по убыванию значения столбца 'quantity' и возрастанию значения столбца 'year'.
+
+pwr = pd.read_csv('power.csv')                                                  # Загружаем данные из файла power.csv.
+
+print(pwr.sort_values(by=['year', 'quantity'], ascending=[True, False]))        # Сортируем по нескольким столбцам.
+
+#Задание 6. Найдите медианное значение количества продаж (столбец 'Amount') в DataFrame trs.
+
+#Первый способ (с помощью median()).
+trs = pd.read_csv('transactions.csv')                                           # Считываем файл transactions.csv.
+
+print("Медианное значение количества продаж в DataFrame trs =", trs['Amount'].median())
+
+#Второй способ (вручную).
+
+import numpy as np
+
+trs = pd.read_csv('transactions.csv')                                           # Считываем файл transactions.csv.
+
+trs_sort = np.array(trs.sort_values(by=['Amount'], ascending=[True])['Amount']) # Сортируем значения в столбце 'Amount' по возрастанию.
+
+print("Массив NumPy с отсортированными значениями столбца 'Amount': \n", trs_sort)
+
+n = len(trs_sort)                                                               # Определяем длину массива.
+
+if n % 2 == 0:                                                                  # Если четное количество элементов в столбце.
+
+  m = (trs_sort[n // 2 - 1] + trs_sort[n // 2]) / 2                             # Медиана - среднее арифметическое двух центральных элементов массива.
+
+else:                                                                           # Если нечетное количество элементов в столбце.
+
+  m = trs_sort[n // 2]                                                          # Медиана - центральный элемент массива.
+
+print("Медианное значение количества продаж в DataFrame trs =", m)
