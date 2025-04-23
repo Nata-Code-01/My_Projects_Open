@@ -1,0 +1,197 @@
+#Ссылка на коллаб: https://colab.research.google.com/drive/1Ylk3Dm8a8FFmsR_IrtY16A3n155-GFPB?usp=sharing
+
+#Задание 1. 
+'''
+Для mnist, sifar10 cifar100 реализовать по две НС для распознавания и сравнить результаты распознавания (к примеру, в одной будет один сверточный слой и один денс слой на 10, 
+а в другой будет - два сверточных слоя и дополнительный денс слой на 256 элементов). 
+Нужно вывести проценты правильного и неправильного распознавания для тренировочных и тестовых выборок.
+'''
+
+#Базовые слои для счёрточных сетей
+from tensorflow import keras
+from tensorflow.keras.layers import Dense, Conv2D, MaxPooling2D, Flatten, Dropout, BatchNormalization
+#from tensorflow.python.keras.preprocessing.image import ImageDataGenerator # работа с изображениями
+from tensorflow.keras.optimizers import Adam, Adadelta # оптимизаторы
+from tensorflow.keras import utils #Используем для to_categoricall
+from tensorflow.keras.preprocessing import image #Для отрисовки изображений
+from google.colab import files #Для загрузки своей картинки
+import numpy as np #Библиотека работы с массивами
+import matplotlib.pyplot as plt #Для отрисовки графиков
+from PIL import Image #Для отрисовки изображений
+import random #Для генерации случайных чисел
+import math # Для округления
+import os #Для работы с файлами
+# подключем диск
+from google.colab import drive
+
+%matplotlib inline
+
+def create_model_small(data_shape, out_shape=10):
+  #Создаем последовательную маленькую модель
+  model = keras.Sequential()
+  #Слой пакетной нормализации
+  model.add(BatchNormalization(input_shape=data_shape))
+  #Первый сверточный слой
+  model.add(Conv2D(32, (3, 3), padding='same', activation='relu'))
+  #Введём Dropout для защиты от переобучения
+  model.add(Dropout(0.3))
+  #Преобразуем в вектор
+  model.add(Flatten())
+  #Полносвязный слой для классификации
+  model.add(Dense(64, activation='relu'))
+  #Введём Dropout для защиты от переобучения
+  model.add(Dropout(0.3))
+  #Выходной полносвязный слой
+  model.add(Dense(out_shape, activation='softmax'))
+
+  #Компилируем сеть
+  model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["accuracy"])
+  return model
+
+def create_model_big(data_shape, out_shape=10):
+  #Создаем последовательную маленькую модель
+  model = keras.Sequential()
+  #Слой пакетной нормализации
+  model.add(BatchNormalization(input_shape=data_shape))
+  #Первый сверточный слой
+  model.add(Conv2D(32, (3, 3), padding='same', activation='relu'))
+  #Введём Dropout для защиты от переобучения
+  model.add(Dropout(0.5))
+  #Второй сверточный слой
+  model.add(Conv2D(32, (3, 3), padding='same', activation='relu'))
+  #Введём Dropout для защиты от переобучения
+  model.add(Dropout(0.5))
+  #Преобразуем в вектор
+  model.add(Flatten())
+  #Полносвязный слой для классификации
+  model.add(Dense(256, activation='relu'))
+  #Введём Dropout для защиты от переобучения
+  model.add(Dropout(0.5))
+  #Выходной полносвязный слой
+  model.add(Dense(out_shape, activation='softmax'))
+
+  #Компилируем сеть
+  model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["accuracy"])
+  return model
+
+model_small = create_model_small((28, 28, 1))
+model_small.summary()
+
+model_big = create_model_big((28, 28, 1))
+model_big.summary()
+
+def get_results(x_train, y_train_ohe, x_test, y_test_ohe, model_small, model_big):
+  #Обучаем малую сеть на данных mnist
+  history_small = model_small.fit(x_train,
+                      y_train_ohe,
+                      batch_size=64,
+                      epochs=15,
+                      validation_data=(x_test, y_test_ohe),
+                      verbose=0)
+
+  #Обучаем большую сеть на данных mnist
+  history_big = model_big.fit(x_train,
+                      y_train_ohe,
+                      batch_size=64,
+                      epochs=15,
+                      validation_data=(x_test, y_test_ohe),
+                      verbose=0)
+  return history_small, history_big
+
+#Отображаем график точности обучения
+def make_figs(history_big, history_small):
+  fig, ax = plt.subplots(1, 2, figsize=(12, 5))
+
+  ax[0].plot(history_big.history['accuracy'],
+          label='Большая модель')
+  ax[0].plot(history_small.history['accuracy'],
+          label='Маленькая модель')
+  ax[0].set_xlabel('Эпоха обучения')
+  ax[0].set_ylabel('Доля верных ответов')
+  ax[0].set_title("train")
+  ax[0].legend()
+
+  ax[1].plot(history_big.history['val_accuracy'],
+          label='Большая модель')
+  ax[1].plot(history_small.history['val_accuracy'],
+          label='Маленькая модель')
+  ax[1].set_xlabel('Эпоха обучения')
+  ax[1].set_ylabel('Доля верных ответов')
+  ax[1].set_title("test")
+  ax[1].legend()
+
+  plt.show()
+
+from tensorflow.keras.datasets import mnist
+#Загружаем MNIST
+(x_train, y_train), (x_test, y_test) = mnist.load_data()
+
+#Превращаем y_train и y_test сетей в формат one hot encoding
+y_train_ohe = utils.to_categorical(y_train, 10)
+y_test_ohe = utils.to_categorical(y_test, 10)
+
+#Меняем формат данных MNIST
+#Надо добавить в конце размерность 1
+#Чтобы свёрточная сеть понимала, что это чёрно-белые данные
+x_train = x_train.reshape(x_train.shape[0], 28, 28, 1)
+x_test = x_test.reshape(x_test.shape[0], 28, 28, 1)
+
+x_train.shape, y_train_ohe.shape
+
+history_small, history_big = get_results(x_train, y_train_ohe, x_test, y_test_ohe,
+                                         create_model_small((28, 28, 1)), create_model_big((28, 28, 1)))
+
+make_figs(history_big, history_small)
+
+from tensorflow.keras.datasets import cifar10
+#Загружаем cifar10
+(x_train, y_train), (x_test, y_test) = cifar10.load_data()
+
+#Превращаем y_train и y_test сетей в формат one hot encoding
+y_train_ohe = utils.to_categorical(y_train, 10)
+y_test_ohe = utils.to_categorical(y_test, 10)
+
+x_train.shape, y_train_ohe.shape
+
+history_small, history_big = get_results(x_train, y_train_ohe, x_test, y_test_ohe,
+                                         create_model_small((32, 32, 3)), create_model_big((32, 32, 3)))
+
+make_figs(history_big, history_small)
+
+from tensorflow.keras.datasets import cifar100
+#Загружаем cifar100
+(x_train, y_train), (x_test, y_test) = cifar100.load_data()
+
+#Превращаем y_train и y_test сетей в формат one hot encoding
+y_train_ohe = utils.to_categorical(y_train, 100)
+y_test_ohe = utils.to_categorical(y_test, 100)
+
+x_train.shape, y_train_ohe.shape
+
+history_small, history_big = get_results(x_train, y_train_ohe, x_test, y_test_ohe,
+                                         create_model_small((32, 32, 3), 100), create_model_big((32, 32, 3), 100))
+
+make_figs(history_big, history_small)
+
+#Задание 2. Реализуйте НС для распознавания изображений из Fashion-MNIST по примерам, рассмотренным ранее.
+
+from tensorflow.keras.datasets import fashion_mnist
+#Загружаем fashion_mnist
+(x_train, y_train), (x_test, y_test) = fashion_mnist.load_data()
+
+#Превращаем y_train и y_test сетей в формат one hot encoding
+y_train_ohe = utils.to_categorical(y_train, 10)
+y_test_ohe = utils.to_categorical(y_test, 10)
+
+#Меняем формат данных fashion_mnist
+#Надо добавить в конце размерность 1
+#Чтобы свёрточная сеть понимала, что это чёрно-белые данные
+x_train = x_train.reshape(x_train.shape[0], 28, 28, 1)
+x_test = x_test.reshape(x_test.shape[0], 28, 28, 1)
+
+x_train.shape, y_train_ohe.shape
+
+history_small, history_big = get_results(x_train, y_train_ohe, x_test, y_test_ohe,
+                                         create_model_small((28, 28, 1)), create_model_big((28, 28, 1)))
+
+make_figs(history_big, history_small)
