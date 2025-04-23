@@ -1,0 +1,114 @@
+#Добавляем необходимые библиотеки:
+import numpy as np  # для работы с многомерными массивами;
+import sympy as sp  # для работы с интегралами и производными;
+import matplotlib.pyplot as plt # для визуализации результатов;
+
+x = sp.Symbol('x')
+y = sp.Symbol('y')
+print("Введите число частей разбиения отрезка времени и значения, до которых изменяются числа i и j:" )
+n = int(input())  # n - на сколько частей делим отрезок времени;
+m = int(input())  # m - значение, до которого меняется число i;
+l = int(input())  # l - значение, до которого меняется число j;
+T = 1/n           # задаём диаметр разбиения;
+
+# Функция, вычисляющая скалярное произведение.
+def func_1(f, g):
+    return sp.integrate((f * g), (y, 0, 1), (x, 0, 1))
+
+# Функция, реализующая форму на элементах.
+def func_2(f, g):
+    return sp.integrate(((sp.diff(f, x) + sp.diff(f, y)) *
+    (sp.diff(g, x) + sp.diff(g, y))), (y, 0, 1), (x, 0, 1))
+
+# Функция, строящая функции из проекционного подпространства.
+def w(i, j):
+    return sp.sin(i * sp.pi * x) * sp.sin(j * sp.pi * y)
+
+# Функция, возвращающая правую часть для заданного t.
+def f(t):
+    return (2*sp.pi*(x**2 - x) * (y**2 - y) * sp.cos(2*sp.pi*t) - 2 *
+    sp.sin(2*sp.pi*t) * (x**2 - 3*x + y**2 - 3*y + 4*x*y + 1))
+
+# Функция, реализующая точное решение задачи.
+def u(t, x,  y):
+    return ((x**2 - x) * (y**2 - y) * sp.sin(2*sp.pi*t))
+
+# Функция, возвращающая значение элемента приближённого решения.
+def u_k (x, y, k):
+    result = 0
+    for i in range(m*l):
+            result += Solve[i + k*m*l] * np.sin((i // l + 1) * np.pi * x) * np.sin((i%l + 1) * np.pi * y)
+    return result
+
+t_r = np.zeros(n + 1) # Массив элементов разбиения промежутка
+                      # времени [0, 1].
+for i in range(len(t_r)):  # Заполнение массива t_r.
+    t_r[i] = i * T
+print("Разбиение отрезка времени [0, 1]:\n", t_r)
+print()
+
+# Матрица A - левая часть системы.
+A = np.zeros(((n + 1) * m * l, (n + 1) * m * l))
+
+# Задание элементов матрицы A.
+for i in range(m * l):
+    A[i][i] = round((-(1/T) * func_1(w(1, 1), w(1, 1))), 8)
+    A[i][i + m*l] = round(((1/T)*1/4 + func_2(w(i//l + 1, i%l + 1), w(i//l + 1, i%l + 1))), 8)
+    for j in range(m*l, 2*m*l):
+        k = i//l+1
+        p = i%l + 1
+        k1 = (j % (m * l)) // l + 1
+        p1 = (j % (m * l)) % l + 1
+        if ((i + m*l) != j) and ((k + k1) % 2 != 0) and (((p + p1) % 2) != 0):
+            A[i][j] = round((func_2(w(k, p), w(k1, p1))), 8)
+for i in range(m*l, len(A[:,0]) - m*l):
+    A[i][i] = A[i - m*l][i - m*l]
+    A[i][i + m*l] = A[i - m*l][i]
+    for j in range((i//(m*l)+1)*m*l, (i//(m*l)+2)*m*l):
+        A[i][j] = A[i-m*l][j-m*l]
+
+for i in range(len(A[:,0]) - m*l, len(A[:,0])):
+    A[i][i - len(A[:,0]) + m*l] = 1
+    A[i][i] = -1
+print("Матрица А имеет следующий вид:\n", A)
+print()
+
+# Вектор-столбец b - правая часть системы.
+b = np.zeros((len(A[:,0]), 1))
+
+# Заполнение вектора-столбца b.
+for i in range(len(b) - m*l):
+    b[i] = round(func_1(f(t_r[i//(m*l) + 1]), w((i%(m*l))//l + 1, (i%(m*l))%l + 1)), 8)
+print("Правая часть имеет вид:\n", b)
+print()
+
+Solve = np.around(np.linalg.solve(A, b), 5) # Поиск решения.
+print("Решение системы:\n", Solve)    # Вывод решения на экран.
+
+# Визуализация решений задачи.
+x = np.linspace(0, 1, 100)
+y = np.linspace(0, 1, 100)
+for k in range(n + 1):
+    # Графики точного решения в плоскости:
+    plt.plot(x, u(t_r[k], x, y), label = f'u(t{k},  x, y)', color='orange')
+    # Графики приближённого решения в плоскости:
+    plt.plot(x, u_k(x, y, k), label = f'u{k}(x, y)', color='green', linestyle='--')
+    plt.legend()
+    plt.grid(linestyle='--')
+    plt.title('Графики решений', weight='bold')
+    plt.xlabel("Ось X", color='blue')
+    plt.ylabel("Ось Z",color='blue')
+    plt.show()
+x, y = np.meshgrid(x, y)
+for k in range(n + 1):
+    fig = plt.figure()
+    ax = plt.axes(projection = '3d')
+    # Графики точного решения в пространстве:
+    ax.plot_surface(x, y, u(t_r[k], x, y),color='orange')
+    # Графики приближённого решения в пространстве:
+    ax.plot_surface(x, y, u_k(x, y, k),color = 'green')
+    ax.set_title('Графики решений', weight='bold')
+    ax.set_xlabel('Ось X', color='blue')
+    ax.set_ylabel('Ось Y', color='blue')
+    ax.set_zlabel('Ось Z', color='blue')
+    plt.show()
