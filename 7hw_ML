@@ -1,0 +1,52 @@
+#Ссылка на коллаб: https://colab.research.google.com/drive/1Th7bIlGUpoRZpK-dJK0pFOBEgnMjUpzU?usp=sharing
+
+#Задание
+'''
+Найти подходящее изображение;
+Загрузить его на компьютер;
+Загрузить его в вашу программу;
+Обрезать и масштабировать (если надо, как это делать можно посмотреть например в https://habr.com/ru/articles/681248/);
+Поменять каналы местами (RGB->BRG);
+Прогнать через сети VGG16 и VGG19;
+Интерпретировать результат.
+'''
+
+import numpy as np
+import matplotlib.pyplot as plt
+from tensorflow import keras
+from google.colab import files
+from io import BytesIO
+from PIL import Image
+
+model16 = keras.applications.VGG16()
+model16.summary()
+
+model19 = keras.applications.VGG19()
+model19.summary()
+
+uploaded = files.upload() # загрузка с ж.д. компьютера
+# в данном случае имя файлав было cat5.jpeg
+
+img = Image.open(BytesIO(uploaded['goose.jpeg'])) # загрузка в PIL объекты
+# из него удобно показывать и преобразовывать в массив
+plt.imshow( img )
+
+img=img.resize((224,224)) # делаем размер 224,224
+plt.imshow( img )
+
+img = np.array(img)
+
+x = keras.applications.vgg16.preprocess_input(img) # RGB->BGR
+print(x.shape)
+x = np.expand_dims(x, axis=0)
+print(x.shape)
+
+# прогоняем через сеть
+res16 = model16.predict( x )
+print(np.argmax(res16))
+
+# прогоняем через сеть
+res19 = model19.predict( x )
+print(np.argmax(res19))
+
+#Таким образом, 99 соответствует загруженной картинке.
