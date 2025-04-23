@@ -1,0 +1,134 @@
+#Задание 1. Создайте линейный график, отображающий изменение температуры за неделю.
+
+import matplotlib.pyplot as plt                                                 # Импортируем модуль pyplot из библиотеки matplotlib.
+
+weather = {'Дни недели': ["Сб", "Вс", "Пн", "Вт", "Ср", "Чт", "Пт"],
+           'Температура': [26, 24, 24, 18, 16, 18, 17]}                         # Данные о температуре за неделю с 19 по 26 апреля.
+weather_table = pd.DataFrame(weather)                                           # Создаем DataFrame.
+print("Таблица с температурой имеет вид: \n", weather_table)                    # Выводим таблицу на экран.
+
+plt.plot(weather['Дни недели'], weather['Температура'])                         # Строим линейный график.
+
+plt.title("Изменение температуры за неделю.")                                   # Задаём название графика.
+plt.xlabel("День недели.")                                                      # Название оси абсцисс.
+plt.ylabel("Температура.")                                                      # Название оси ординат.
+plt.grid()                                                                      # Отображение сетки.
+
+plt.show()                                                                      # Выводим график.
+
+#Задание 2. Создайте гистограмму, отображающую распределение оценок студентов.
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+
+grades = {'Оценка': ['2', '3', '4', '5'], 'Количество': [2, 11, 27, 18]}        # Данные об оценках и их количестве.
+grades_table = pd.DataFrame(grades)                                             # Создаем DataFrame.
+print("Таблица с оценками имеет вид: \n", grades_table)                         # Выводим таблицу на экран.
+
+plt.figure()                                                                    # Задаём размеры области построения для текущей диаграммы.
+plt.barh(grades_table['Оценка'], grades_table['Количество'], color='maroon')    # Строим диаграмму по данным из таблицы.
+
+plt.xlabel('Количество')                                                        # Надпись на горизонтальной оси (y).
+plt.ylabel('Оценки')                                                            # Надпись на вертикальной оси (x).
+plt.title('Распределение оценок студентов.')                                    # Заголовок диаграммы.
+plt.grid()                                                                      # Отображение сетки.
+
+plt.show()                                                                      # Выводим график.
+
+#Задание 3. Постройте диаграмму рассеивания для отображения связи между количеством часов занятий и результатами студентов.
+
+import seaborn as sns
+
+data = {'Часы': [10, 15, 8, 20, 12, 18, 9, 14, 16, 11],                         # Данные о часах занятий и результатах студентов.
+        'Результаты': [5, 5, 4, 4, 4, 3, 4, 3, 5, 4]}
+table_3 = pd.DataFrame(data)                                                    # Создаем DataFrame.
+print("Таблица с часами и результатами имеет вид: \n", table_3)                 # Выводим таблицу на экран.
+
+sns.jointplot(x = 'Часы', y = 'Результаты', data = table_3, kind = 'scatter')   # Строим диаграмму рассеивания.
+
+sns_plot = sns.pairplot(table_3[['Часы', 'Результаты']])                        # Строим диаграмму рассеивания.
+
+#Задание 4. Скачайте любые данные (1-2 датасета) с сайта Всемирного банка в формате csv. Визуализируйте данные с помощью изученных библиотек.
+
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+df = pd.read_csv('WB_WDI_SH_TBS_INCD.csv')                                      # Загружаем данные в датасет.
+
+print("df.shape =", df.shape)                                                   # Посмотрим размер таблицы.
+print()
+# print(df.head(), sep='')                                                      # Выведем первые 5 строк таблицы.
+# print()
+
+df.drop(columns=['STRUCTURE', 'STRUCTURE_ID', 'ACTION', 'FREQ_ID', 'FREQ_NAME',
+                 'REF_AREA_NAME', 'INDICATOR_ID', 'INDICATOR_NAME', 'SEX_ID',
+                 'DATA_SOURCE_NAME','UNIT_TYPE_ID', 'UNIT_TYPE_NAME', 'TIME_FORMAT_ID',
+                 'COMMENT_OBS', 'OBS_STATUS_ID', 'OBS_STATUS_NAME', 'OBS_CONF_ID', 'OBS_CONF_NAME' ], inplace=True)
+
+# print(df.head(), sep='')                                                      # Выведем первые 5 строк таблицы.
+# print()
+
+df.drop(columns=['SEX_NAME','AGE_ID', 'AGE_NAME', 'URBANISATION_ID', 'URBANISATION_NAME',
+                 'UNIT_MEASURE_ID', 'UNIT_MEASURE_NAME', 'COMP_BREAKDOWN_1_ID', 'COMP_BREAKDOWN_1_NAME',
+                 'AGG_METHOD_NAME', 'DECIMALS_ID', 'DECIMALS_NAME', 'DATABASE_ID_ID', 'DATABASE_ID_NAME',
+                 'COMMENT_TS', 'UNIT_MULT_ID', 'UNIT_MULT_NAME', 'DATA_SOURCE_ID', 'TIME_FORMAT_NAME' ], inplace=True)
+
+# print(df.head(), sep='')                                                      # Выведем первые 5 строк таблицы.
+# print()
+
+df.drop(columns=['COMP_BREAKDOWN_2_ID', 'COMP_BREAKDOWN_2_NAME', 'COMP_BREAKDOWN_3_ID', 'COMP_BREAKDOWN_3_NAME', 'AGG_METHOD_ID'], inplace=True)
+
+print(df.head(), sep='')                                                        # Выведем первые 5 строк таблицы.
+
+
+grouped = df.groupby('TIME_PERIOD')
+aggregated = grouped.agg({'OBS_VALUE': 'sum'})
+
+plt.figure()                                                                    # Задаём размеры области построения для текущей диаграммы.
+plt.barh(df['TIME_PERIOD'], df['OBS_VALUE'], color='maroon')                    # Строим диаграмму по данным из таблицы.
+
+plt.xlabel('Заболевших на 100 000 чел.')                                        # Надпись на горизонтальной оси (y).
+plt.ylabel('Период')                                                            # Надпись на вертикальной оси (x).
+plt.title('Количество заболевших туберкулёзом.')                                # Заголовок диаграммы.
+plt.grid()                                                                      # Отображение сетки.
+
+plt.show()                                                                      # Выводим график.
+
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+df = pd.read_csv('WB_WDI_SE_XPD_TOTL_GD_ZS.csv')                                # Загружаем данные в датасет.
+
+print("df.shape =", df.shape)                                                   # Посмотрим размер таблицы.
+print()
+print(df.head(), sep='')                                                        # Выведем первые 5 строк таблицы.
+
+df.drop(columns=['STRUCTURE', 'STRUCTURE_ID', 'ACTION', 'FREQ_ID', 'FREQ_NAME',
+                 'REF_AREA_NAME', 'INDICATOR_ID', 'INDICATOR_NAME', 'SEX_ID',
+                 'DATA_SOURCE_NAME','UNIT_TYPE_ID', 'UNIT_TYPE_NAME', 'TIME_FORMAT_ID',
+                 'COMMENT_OBS', 'OBS_STATUS_ID', 'OBS_STATUS_NAME', 'OBS_CONF_ID', 'OBS_CONF_NAME' ], inplace=True)
+
+# print(df.head(), sep='')                                                      # Выведем первые 5 строк таблицы.
+# print()
+
+df.drop(columns=['SEX_NAME','AGE_ID', 'AGE_NAME', 'URBANISATION_ID', 'URBANISATION_NAME',
+                 'UNIT_MEASURE_ID', 'UNIT_MEASURE_NAME', 'COMP_BREAKDOWN_1_ID', 'COMP_BREAKDOWN_1_NAME',
+                 'AGG_METHOD_NAME', 'DECIMALS_ID', 'DECIMALS_NAME', 'DATABASE_ID_ID', 'DATABASE_ID_NAME',
+                 'COMMENT_TS', 'UNIT_MULT_ID', 'UNIT_MULT_NAME', 'DATA_SOURCE_ID', 'TIME_FORMAT_NAME' ], inplace=True)
+
+# print(df.head(), sep='')                                                      # Выведем первые 5 строк таблицы.
+# print()
+
+df.drop(columns=['COMP_BREAKDOWN_2_ID', 'COMP_BREAKDOWN_2_NAME', 'COMP_BREAKDOWN_3_ID', 'COMP_BREAKDOWN_3_NAME', 'AGG_METHOD_ID'], inplace=True)
+
+print(df.head(), sep='')                                                        # Выведем первые 5 строк таблицы.
+
+sns.jointplot(x='TIME_PERIOD', y='OBS_VALUE',
+              data=df, kind='reg')                                              # Добавление линии линейной регрессии.
+
+sns_plot = sns.pairplot(
+    df[['REF_AREA_ID', 'TIME_PERIOD', 'OBS_VALUE']])
+sns_plot
