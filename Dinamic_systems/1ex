@@ -1,0 +1,199 @@
+'''
+Приведите пример математической модели, описывающей реальный динамический процесс с помощью диф.ур. или дискретной последовательностью из любой области (физика, химия, биология и т.д.), 
+и обладающей примечательной динамикой. При этом модель должна удовлетворять следующим требованиям:
+
+1.Фазовое пространство не меньше 2;
+
+2.Существование не менее двух аттракторов или наличие перестройки (бифуркации) решения при изменении параметров модели.
+
+ Описание модели должно включать в себя: существенную постановку, вывод математической модели, демонстрацию типичных решений (в виде аналитических выкладок или численного моделирования), 
+ описание происходящей бифуркации при наличии (аналогичным образом). Примеры моделей рекомендуется выбирать из книг и журналов, рекомендованных к курсу. 
+ Решение оформить в письменном виде от руки и в виде файла среды Jupyter с кодами на Python и необходимыми выкладками.
+ '''
+
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.integrate import odeint
+
+def brusselator(solve, t, A, B):                          #Функция, задающая модель "брюсселятор".
+    x, y = solve
+    dxdt = A - (B + 1) * x + x**2 * y
+    dydt = B * x - x**2 * y
+    return np.array([dxdt, dydt])
+
+    # Задаём начальные условия:
+x0 = 1.5
+y0 = 1.5
+
+# Параметры модели:
+A = 1.5                                                   #Фиксируем.
+
+t = np.linspace(0, 50, 1000)                              #Задаём разбиение по интервалу времени.
+
+# Параметры модели:
+B = 0.2
+solve = odeint(brusselator, [x0, y0], t, args=(A, B))     #Численное решение системы.
+
+# Построение графика:
+plt.plot(t, solve[:, 0],'r--', label='X')
+plt.plot(t, solve[:, 1],'g-', label='Y')
+plt.xlabel('Время')
+plt.ylabel('Концентрация')
+plt.legend()
+plt.title(f'Модель Брюсселятора: A = {A}, B = {B}')
+plt.show()
+
+# Параметры модели:
+B = 3.0
+solve = odeint(brusselator, [x0, y0], t, args=(A, B))     #Численное решение системы.
+
+# Построение графика:
+plt.plot(t, solve[:, 0],'r--', label='X')
+plt.plot(t, solve[:, 1],'g-', label='Y')
+plt.xlabel('Время')
+plt.ylabel('Концентрация')
+plt.legend()
+plt.title(f'Модель Брюсселятора: A = {A}, B = {B}')
+plt.show()
+
+# Параметры модели: 
+B = 4.0
+solve = odeint(brusselator, [x0, y0], t, args=(A, B))     #Численное решение системы.
+
+# Построение графика:
+plt.plot(t, solve[:, 0],'r--', label='X')
+plt.plot(t, solve[:, 1],'g-', label='Y')
+plt.xlabel('Время')
+plt.ylabel('Концентрация')
+plt.legend()
+plt.title(f'Модель Брюсселятора: A = {A}, B = {B}')
+plt.show()
+
+# Параметры модели: 
+B = 6.5
+solve = odeint(brusselator, [x0, y0], t, args=(A, B))     #Численное решение системы.
+
+# Построение графика:
+plt.plot(t, solve[:, 0],'r--', label='X')
+plt.plot(t, solve[:, 1],'g-', label='Y')
+plt.xlabel('Время')
+plt.ylabel('Концентрация')
+plt.legend()
+plt.title(f'Модель Брюсселятора: A = {A}, B = {B}')
+plt.show()
+
+# Параметры модели:
+A = 1.5                                                      #Устанавливаем значение A.
+x0 = 2.0                                                     #Начальная концентрация вещества X.
+y0 = 2.0                                                     #Начальная концентрация вещества Y.
+t = np.linspace(0, 50, 1000)                                 #Задаём массив по интервалу времени.
+
+plt.figure()
+
+# Цикл для значений B от 0 до (1 - A)**2 с шагом 0.05.
+for B in np.arange(0, (1 - A)**2, 0.05):
+    pop = odeint(brusselator, [x0, y0], t, args=(A, B))      #Численное решение ОДУ.
+    plt.plot(pop[:, 0], pop[:, 1], label=f'B = {B:.2f}')
+
+plt.xlabel('Концентрация X')
+plt.ylabel('Концентрация Y')
+plt.title('Фазовый портрет: устойчивый узел')
+plt.grid()
+plt.axhline(0, color='black', lw=0.5, ls='--')
+plt.axvline(0, color='black', lw=0.5, ls='--')
+plt.legend()
+plt.show()
+
+plt.figure()
+
+# Цикл для значений B от (1 - A)**2 до 1 + A**2 с шагом 0.5
+
+for B in np.arange((1 - A)**2 + 0.1, 1 + A**2, 0.5):
+    pop = odeint(brusselator, [x0, y0], t, args=(A, B))       #Численное решение ОДУ. 
+    plt.plot(pop[:, 0], pop[:, 1], label=f'B = {B:.2f}')
+
+plt.xlabel('Концентрация X')
+plt.ylabel('Концентрация Y')
+plt.title('Фазовый портрет: устойчивый фокус')
+plt.grid()
+plt.axhline(0, color='black', lw=0.5, ls='--')
+plt.axvline(0, color='black', lw=0.5, ls='--')
+plt.legend()
+plt.show()
+
+plt.figure()
+
+# Цикл для значений B от 1 + A**2 до (1 + A)**2 с шагом 0.5
+
+for B in np.arange(1 + A**2 + 0.1, (1 + A)**2, 0.5):
+    pop = odeint(brusselator, [x0, y0], t, args=(A, B))       #Численное решение ОДУ. 
+    plt.plot(pop[:, 0], pop[:, 1], label=f'B = {B:.2f}')
+
+plt.xlabel('Концентрация X')
+plt.ylabel('Концентрация Y')
+plt.title('Фазовый портрет: неустойчивый фокус, устойчивый предельный цикл')
+plt.grid()
+plt.axhline(0, color='black', lw=0.5, ls='--')
+plt.axvline(0, color='black', lw=0.5, ls='--')
+plt.legend()
+plt.show()
+
+plt.figure()
+
+# Цикл для значений B от (1 + A)**2 до (1 + A)**2 + 3 с шагом 0.5
+
+for B in np.arange((1 + A)**2 + 0.1, (1 + A)**2 + 3, 0.5):
+    pop = odeint(brusselator, [x0, y0], t, args=(A, B))       #Численное решение ОДУ.
+    plt.plot(pop[:, 0], pop[:, 1], label=f'B = {B:.2f}')
+
+plt.xlabel('Концентрация X')
+plt.ylabel('Концентрация Y')
+plt.title('Фазовый портрет: неустойчивый узел, устойчивый предельный цикл')
+plt.grid()
+plt.axhline(0, color='black', lw=0.5, ls='--')
+plt.axvline(0, color='black', lw=0.5, ls='--')
+plt.legend()
+plt.show()
+
+plt.figure()
+
+B = (1 + A)**2                                                # Задаём значение B, определяющее предельный цикл.                      
+
+pop = odeint(brusselator, [x0, y0], t, args=(A, B))           # Численное решение ОДУ.
+
+plt.plot(pop[:, 0], pop[:, 1], label=f'B = {B:.2f}')
+plt.xlabel('Концентрация X')
+plt.ylabel('Концентрация Y')
+plt.title('Фазовый портрет: Бифуркация Андронова-Хопфа, предельный цикл')
+plt.grid()
+plt.axhline(0, color='black', lw=0.5, ls='--')
+plt.axvline(0, color='black', lw=0.5, ls='--')
+plt.legend()
+plt.show()
+
+A = [1, 2]
+B = [1, 2, 3, 4]                                          # Разные значения B для исследования поведения системы.
+
+x = np.linspace(-1, 5, 20)
+y = np.linspace(-1, 5, 20)
+X, Y = np.meshgrid(x, y)
+
+for a in A:
+    for b in B:
+        DX, DY = np.zeros(X.shape), np.zeros(Y.shape)
+
+        for i in range(X.shape[0]):
+            for j in range(X.shape[1]):
+                points = brusselator([X[i, j], Y[i, j]], t, a, b)
+                DX[i, j] = points[0]
+                DY[i, j] = points[1]
+
+        plt.figure()                                   # Построение фазового портрета.
+        plt.streamplot(X, Y, DX, DY, color='b', density = 2)
+        plt.title(f'Фазовый портрет Брюсселятора для A = {a}, B = {b}')
+        plt.xlabel('X')
+        plt.ylabel('Y')
+        plt.axhline(0, color='black', lw = 1.5, ls='--')
+        plt.axvline(0, color='black', lw = 1.5, ls='--')
+        plt.grid(True)
+        plt.show()
