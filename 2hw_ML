@@ -1,0 +1,279 @@
+#Задание1. Поменяйте веса так, чтобы результирующий график зеркально отобразился по горизонтали и по вертикали.
+
+import matplotlib.pyplot as plt # Подключаем matplotlib
+import numpy as np # Подключаем numpy
+
+def Sigmoid(x):
+  res=1/(1+np.exp(-x))
+  return res
+
+def F(x):
+  res=np.sin(x)
+  return res
+
+x=np.arange(-np.pi, np.pi, 0.01)
+
+y=np.zeros(x.size)
+for i in range(x.size):
+  y[i]=F(x[i])
+#x=x/np.pi
+plt.plot(x,y)
+plt.show()
+print(x.size)
+
+a1=np.zeros(x.size)
+a2=np.zeros(x.size)
+
+w1=-2.0
+w2=2.
+b1=3.
+b2=3.
+for i in range(x.size):
+  a1[i]=x[i]*w1+b1
+  a2[i]=x[i]*w2+b2
+y1=np.zeros(x.size)
+y2=np.zeros(x.size)
+
+for i in range(x.size):
+  y1[i]=Sigmoid(a1[i])
+  y2[i]=Sigmoid(a2[i])
+#x=x/np.pi
+plt.plot(x,y1)
+plt.plot(x,y2)
+plt.show()
+
+z=np.zeros(x.size)
+v1=1
+v2=2.
+bb1=-1.
+for i in range(x.size):
+  z[i]=v1*y1[i]+v2*y2[i]+bb1;
+plt.plot(x,z)
+plt.plot(x,y1)
+plt.plot(x,y2)
+plt.show()
+
+a1=np.zeros(x.size)
+a2=np.zeros(x.size)
+
+w1=-2.0
+w2=2.
+b1=-3.
+b2=-3.
+for i in range(x.size):
+  a1[i]=x[i]*w1+b1
+  a2[i]=x[i]*w2+b2
+y1=np.zeros(x.size)
+y2=np.zeros(x.size)
+
+for i in range(x.size):
+  y1[i]=Sigmoid(a1[i])
+  y2[i]=Sigmoid(a2[i])
+#x=x/np.pi
+plt.plot(x,y1)
+plt.plot(x,y2)
+plt.show()
+
+z=np.zeros(x.size)
+v1=1
+v2=2.
+bb1=-1.
+for i in range(x.size):
+  z[i]=v1*y1[i]+v2*y2[i]+bb1;
+plt.plot(x,z)
+plt.plot(x,y1)
+plt.plot(x,y2)
+plt.show()
+
+#Задание2. Попробуйте самостоятельно создать и обучить полносвязную сеть, апроксимирующую cos(x) от -pi до pi. Нейронов в скрытом слое задайте 3 а потом 7 и посмотрите как изменился результат.
+
+import numpy as np
+import matplotlib.pyplot as plt
+from tensorflow import keras
+from tensorflow.keras.layers import Dense
+
+def F1(x):
+  res=np.cos(x)
+  return res
+
+x=np.arange(-np.pi, np.pi, 0.01)
+y=np.zeros(x.size)
+for i in range(x.size):
+  y[i]=F1(x[i])
+
+model = keras.Sequential()
+model.add(Dense(units=3, input_shape=(1,), activation='sigmoid'))
+model.add(Dense(units=1, activation='linear'))
+model.compile(loss='mean_squared_error', optimizer=keras.optimizers.Adam(0.1))
+
+from tensorflow.keras.utils import plot_model # формирует картинку со схемой модели
+print(model.summary())
+plot_model(model, dpi=60, show_shapes=True) # Выводим схему модели
+
+log = model.fit(x, y, epochs=100, verbose=False)
+plt.plot(log.history['loss'])
+plt.grid(True)
+plt.show()
+
+res=model.predict(x)
+plt.plot(x,res)
+plt.grid(True)
+plt.show()
+
+res=model.predict(x)
+
+plt.plot(x,res)
+plt.plot(x,y)
+plt.grid(True)
+plt.show()
+
+plt.plot(x[0:100],res[0:100])
+plt.plot(x[0:100],y[0:100])
+plt.grid(True)
+plt.show()
+
+print(res.shape)
+print(y.shape)
+ey=y-res.reshape(-1)
+plt.plot(x,ey)
+plt.show()
+
+sum=0
+for i in range(ey.size):
+  sum=sum+(ey[i]*ey[i])
+mseRes=sum/ey.size
+rmseRes=np.sqrt(sum/ey.size)
+print(mseRes)
+print(rmseRes)
+sum=0
+for i in range(ey.size):
+  sum=sum+np.abs(ey[i])
+maeRes=sum/ey.size
+print(maeRes)
+
+print(model)
+print(type(model))
+weights=  model.get_weights()
+weights_old=weights.copy()
+print(weights)
+print(weights[0]) #w 1
+print(weights[1]) #b 1
+print(weights[2]) # v 2
+print(weights[3]) # b 2
+
+#model.load_weights(weights)
+w=weights[0]
+print(w.size)
+print(w.shape)
+print(w[0][1]) #2й вес в первом слое
+
+print(weights[0].shape)
+print(weights[1].shape)
+print(weights[2].shape)
+print(weights[3].shape)
+
+w1=weights[0][0][0]
+w2=weights[0][0][1]  # поменяем в сети на -5
+w3=weights[0][0][2]
+
+b1=weights[1][0]
+b2=weights[1][1]
+b3=weights[1][2]
+
+v1=weights[2][0][0]
+v2=weights[2][1][0]
+v3=weights[2][2][0]
+
+b4=weights[3][0]
+
+weights[0][0][1]=-5
+model.set_weights(weights)
+res=model.predict(x)
+plt.plot(x,res)
+plt.grid(True)
+plt.show()
+
+a1=np.zeros(x.size)
+a2=np.zeros(x.size)
+a3=np.zeros(x.size)
+
+
+for i in range(x.size):
+  a1[i]=x[i]*w1+b1
+  a2[i]=x[i]*w2+b2
+  a3[i]=x[i]*w3+b3
+
+y1=np.zeros(x.size)
+y2=np.zeros(x.size)
+y3=np.zeros(x.size)
+
+for i in range(x.size):
+  y1[i]=Sigmoid(a1[i])
+  y2[i]=Sigmoid(a2[i])
+  y3[i]=Sigmoid(a3[i])
+
+#x=x/np.pi
+plt.plot(x,y1)
+plt.plot(x,y2)
+plt.plot(x,y3)
+plt.grid(True)
+plt.show()
+
+
+z=np.zeros(x.size)
+
+for i in range(x.size):
+  z[i]=v1*y1[i]+v2*y2[i]+ v3*y3[i]+b4;
+plt.plot(x,z)
+plt.plot(x,y1*v1)
+plt.plot(x,y2*v2)
+plt.plot(x,y3*v3)
+plt.grid(True)
+plt.show()
+
+model2 = keras.Sequential()
+model2.add(Dense(units=2, input_shape=(1,), activation='sigmoid'))
+model2.add(Dense(units=1, activation='linear'))
+model2.compile(loss='mean_squared_error', optimizer=keras.optimizers.Adam(0.1))
+log = model2.fit(x, y, epochs=100, verbose=False)
+plt.plot(log.history['loss'])
+plt.grid(True)
+plt.show()
+res=model2.predict(x)
+plt.plot(x,res)
+plt.grid(True)
+plt.show()
+weights2=model2.get_weights()
+print(weights2)
+
+plt.plot(x,res)
+plt.plot(x,y)
+plt.grid(True)
+plt.show()
+
+model3 = keras.Sequential()
+model3.add(Dense(units=7, input_shape=(1,), activation='sigmoid'))
+model3.add(Dense(units=1, activation='linear'))
+model3.compile(loss='mean_squared_error', optimizer=keras.optimizers.Adam(0.01))
+log = model3.fit(x, y, epochs=100, verbose=False)
+plt.plot(log.history['loss'])
+plt.grid(True)
+plt.show()
+res=model3.predict(x)
+plt.plot(x,res)
+plt.grid(True)
+plt.show()
+weights3=model3.get_weights()
+#print(weights3)
+
+model3.set_weights(weights3)
+res=model3.predict(x)
+plt.plot(x,res)
+plt.grid(True)
+plt.show()
+
+model3.set_weights(weights3)
+res=model3.predict(x)
+plt.plot(x,res)
+plt.grid(True)
+plt.show()
