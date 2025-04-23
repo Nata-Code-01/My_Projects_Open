@@ -1,0 +1,94 @@
+#Задание.
+#1. Попробуйте подобрать другую топологию, не слишком увеличивая общее количество нейронов. Можно менять количество слоев и активационные функции.
+#2. Постарайтесь добиться уменьшения погрешности.
+
+import numpy as np
+import matplotlib.pyplot as plt
+from tensorflow import keras
+from tensorflow.keras.layers import Dense
+
+def F(x):
+  res = np.sin(x*x)
+  return res
+
+def Sigmoid(x):
+  res=1/(1+np.exp(-x))
+  return res
+
+def RELU(x):
+  if x<0:
+    return 0
+  else:
+    return x
+
+x=np.arange(-np.pi, np.pi, 0.01)
+y=np.zeros(x.size)
+
+for i in range(x.size):
+  y[i]=F(x[i])
+#x=x/np.pi
+plt.plot(x,y)
+plt.show()
+print(x.size)
+
+model = keras.Sequential()
+model.add(Dense(units=64, input_shape=(1,), activation='sigmoid')) #Увеличили количество нейронов.
+model.add(Dense(units=32, activation='sigmoid'))                   #Добавили ещё один скрытый слой.
+model.add(Dense(units=1, activation='linear'))
+model.compile(loss='mean_squared_error', optimizer=keras.optimizers.Adam(0.001)) # Уменьшили скорость обучения.
+
+from tensorflow.keras.utils import plot_model # формирует картинку со схемой модели
+print(model.summary())
+plot_model(model, dpi=60, show_shapes=True) # Выводим схему модели
+
+log = model.fit(x, y, epochs=3000, verbose=False)       # Увеличили количество эпох.
+plt.plot(log.history['loss'])
+plt.grid(True)
+plt.show()
+
+res=model.predict(x)
+plt.plot(x,res)
+plt.grid(True)
+plt.show()
+
+res=model.predict(x)
+
+plt.plot(x,res)
+plt.plot(x,y)
+plt.grid(True)
+plt.show()
+
+model = keras.Sequential()
+model.add(Dense(units=64, input_shape=(1,), activation='sigmoid')) #Увеличили количество нейронов и использовали sigmoid.
+model.add(Dense(units=32, activation='sigmoid'))                   #Добавили ещё один скрытый слой.
+model.add(Dense(units=1, activation='linear'))
+model.compile(loss='mean_squared_error', optimizer=keras.optimizers.Adam(0.001)) # Уменьшили скорость обучения.
+
+print(model.summary())
+log = model.fit(x, y, epochs=3000, verbose=False)                  # Увеличили количество эпох.
+plt.plot(log.history['loss'])
+plt.grid(True)
+plt.show()
+res=model.predict(x)
+plt.plot(x,res)
+plt.grid(True)
+plt.show()
+
+print(res.shape)
+print(y.shape)
+ey=y-res.reshape(-1)
+plt.plot(x,ey)
+plt.show()
+
+sum=0
+for i in range(ey.size):
+  sum=sum+(ey[i]*ey[i])
+mseRes=sum/ey.size
+rmseRes=np.sqrt(sum/ey.size)
+print(mseRes)
+print(rmseRes)
+sum=0
+for i in range(ey.size):
+  sum=sum+np.abs(ey[i])
+maeRes=sum/ey.size
+print(maeRes)
