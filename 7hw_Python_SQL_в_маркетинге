@@ -1,0 +1,72 @@
+#Задание 1. Дана информация о продажах товаров различных категорий. Требуется сгруппировать данные по категориям товаров и подсчитать суммарные продажи для каждой категории.
+#data = {'Category': ['Electronics', 'Clothing', 'Electronics', 'Clothing', 'Books'], 'Sales': [100, 150, 200, 120, 90]}
+
+import pandas as pd                                                             # Импортируем библиотеку для работы с табличными данными.
+
+data = {'Category': ['Electronics', 'Clothing', 'Electronics', 'Clothing', 'Books'], # Создаём словарь с данными из условия.
+        'Sales': [100, 150, 200, 120, 90]}
+
+data_table = pd.DataFrame(data)                                                 # Преобразуем словарь в DataFrame.
+print("Начальная таблица имеет вид: \n", data_table, sep = '')
+
+print()
+
+data_table_groupby_sum = data_table.groupby('Category')['Sales'].sum()          # Группируем по категориям и суммируем продажи.
+print("Суммарные продажи товаров по категориям:\n ", data_table_groupby_sum, sep = '')
+
+#Задание 2. Есть словарь с информацией о пользователях (ключ User) и их предпочтениях (ключ Preference). Требуется узнать, сколько пользователей выбрали каждую категорию предпочтений.
+#data = {'User': ['Alice', 'Bob', 'Alice', 'Charlie', 'Bob', 'Alice'], 'Preference': ['Music', 'Movies', 'Music', 'Books', 'Games', 'Music']}
+
+import pandas as pd                                                             # Импортируем библиотеку для работы с табличными данными.
+
+data = {'User': ['Alice', 'Bob', 'Alice', 'Charlie', 'Bob', 'Alice'],
+        'Preference': ['Music', 'Movies', 'Music', 'Books', 'Games', 'Music']}  # Создаём словарь с данными из условия.
+
+data_table = pd.DataFrame(data)                                                 # Преобразуем словарь в DataFrame.
+print("Начальная таблица имеет вид: \n", data_table, sep = '')
+
+print()
+
+data_table_groupby_uniq = data_table.groupby('Preference')['User'].nunique()    # Группируем по предпочтениям и выбираем уникальных пользователей.
+print("Количество пользователей, выбравших категорию предпочтений:\n ", data_table_groupby_uniq, sep = '')
+
+#Задание 3. У вас есть словарь с информацией о продуктах и их категориях. Сгруппируйте данные по категориям и определите количество продуктов в каждой категории.
+#data = {'Product': ['A', 'B', 'C', 'D', 'E'], 'Category': ['X', 'Y', 'X', 'Y', 'Z']}
+
+import pandas as pd                                                             # Импортируем библиотеку для работы с табличными данными.
+
+data = {'Product': ['A', 'B', 'C', 'D', 'E'],
+        'Category': ['X', 'Y', 'X', 'Y', 'Z']}                                  # Создаём словарь с данными из условия.
+
+data_table = pd.DataFrame(data)                                                 # Преобразуем словарь в DataFrame.
+print("Начальная таблица имеет вид: \n", data_table, sep = '')
+
+print()
+
+data_table_groupby_count = data_table.groupby('Category')['Product'].count()    # Группируем по категориям и считаем количество продуктов в каждой.
+print("Количество продуктов в каждой категории:\n ", data_table_groupby_count, sep = '')
+
+#Задание 4. Для словаря со списком продуктов и их ценами определите категорию каждого товара на основе цены (дешевый, средний, дорогой). При решении задачи использовать метод apply и создание функции.
+#data = {'Product': ['A', 'B', 'C', 'D', 'E'], 'Price': [50, 100, 200, 150, 75]}
+
+import pandas as pd                                                             # Импортируем библиотеку для работы с табличными данными.
+
+data = {'Product': ['A', 'B', 'C', 'D', 'E'],
+        'Price': [50, 100, 200, 150, 75]}                                       # Создаём словарь с данными из условия.
+
+data_table = pd.DataFrame(data)                                                 # Преобразуем словарь в DataFrame.
+print("Начальная таблица имеет вид: \n", data_table, sep = '')
+
+print()
+
+def category(x):                                                                # Создаём пользовательскую функцию category(x).
+    if x <= 80:
+      return 'дешёвый'
+    elif x <= 150:
+      return 'средний'
+    else:
+      return 'дорогой'
+
+data_table['Category'] = data_table['Price'].apply(category)                    # Добавляем новый столбец 'Category' в таблицу, используя функцию category(x).
+
+print("Итоговая таблица:\n ", data_table, sep = '')
