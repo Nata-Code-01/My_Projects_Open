@@ -1,3 +1,5 @@
+#Ссылка на коллаб: https://colab.research.google.com/drive/19_ZVoWoGWFzpzFI4jlcvz2-rRx4Ja1S2?usp=sharing
+
 #Задание1. Поменяйте веса так, чтобы результирующий график зеркально отобразился по горизонтали и по вертикали.
 
 import matplotlib.pyplot as plt # Подключаем matplotlib
