@@ -1,0 +1,375 @@
+Ссылка на коллаб: https://colab.research.google.com/drive/1y17UlUrexlDeyqfDc5cUve3OtFaCKZr2?usp=sharing
+
+#Задание 1. Используя шаблон ноутбука для распознавания видов одежды и аксессуаров из набора fashion_mnist, выполните следующие действия:
+#Создайте 9 моделей нейронной сети с различными архитектурами и сравните в них значения точности на проверочной выборке (на последней эпохе) и на тестовой выборке.
+#Используйте следующее деление: обучающая выборка - 50000 примеров, проверочная выборка - 10000 примеров, тестовая выборка - 10000 примеров.
+#Заполните сравнительную таблицу в конце ноутбука, напишите свои выводы по результатам проведенных тестов.
+
+# Последовательная модель НС
+from tensorflow.keras.models import Sequential
+
+# Основные слои
+from tensorflow.keras.layers import Dense, Activation, Dropout, BatchNormalization
+
+# Утилиты для to_categorical()
+from tensorflow.keras import utils
+
+# Алгоритмы оптимизации для обучения модели
+from tensorflow.keras.optimizers import Adam, Adadelta
+
+# Библиотека для работы с массивами
+import numpy as np
+
+# Библиотека для работы с таблицами
+import pandas as pd
+
+# Отрисовка графиков
+import matplotlib.pyplot as plt
+
+# Связь с google-диском
+from google.colab import files
+
+# Предварительная обработка данных
+from sklearn import preprocessing
+
+# Разделение данных на выборки
+from sklearn.model_selection import train_test_split
+
+# Для загрузки датасета
+from keras.datasets import fashion_mnist
+
+# Отрисовывать изображения в ноутбуке, а не в консоль или файл
+%matplotlib inline
+
+'''
+База: одежда, обувь и аксессуары
+
+Датасет состоит из набора изображений одежды, обуви, аксессуаров и их классов.
+Изображения одного вида хранятся в numpy-массиве (28, 28) - x_train, x_test.
+База содержит 10 классов: (Футболка, Брюки, Пуловер, Платье, Пальто, Сандалии/Босоножки, Рубашка, Кроссовки, Сумочка, Ботильоны) - y_train, y_test.
+Примеров: train - 60000, test - 10000.
+'''
+
+# Загрузка датасета
+(x_train, y_train), (x_test, y_test) = fashion_mnist.load_data()
+
+# Вывод размерностей выборок
+
+print('Размер x_train:',x_train.shape)
+print('Размер y_train:',y_train.shape)
+print('Размер x_test:',x_test.shape)
+print('Размер y_test:',y_test.shape)
+
+# Выбор 1 изображения каждого класса
+imgs = np.array([x_train[y_train==i][0] for i in range(10)])
+
+# Соединение изображения в одну линию
+imgs = np.concatenate(imgs, axis=1)
+
+# Создание поля для изображения
+plt.figure(figsize=(30, 6))
+
+# Отрисовка итогового изображения
+plt.imshow(imgs, cmap='Greys_r')
+
+# Без сетки
+plt.grid(False)
+
+# Без осей
+plt.axis('off')
+
+# Вывод результата
+plt.show()
+
+from tensorflow.keras.layers import Flatten
+from tensorflow.keras.utils import to_categorical
+
+(x_train, y_train), (x_test, y_test) = fashion_mnist.load_data()                # Загружаем данные для обучающей и тестовой выборки.
+y_train = to_categorical(y_train, 10)                                           # Нормализуем соответсвие классу одежды.
+y_test = to_categorical(y_test, 10)
+x_train = x_train.astype('float32') / 255.                                      # Нормализация.
+x_test = x_test.astype('float32') / 255.                                        # Нормализация.
+ans = []                                                                        # Список для хранения результатов.
+
+x_train, x_v, y_train, y_v = train_test_split(x_train, y_train, test_size = 0.2, random_state = 42) # Разбиваем обучающую выборку.
+
+def func(param, epochs = 7, batch_size = 100):
+    modeln = Sequential()                                                       # Создаём полносвязную модель.
+    modeln.add(Flatten(input_shape=(28, 28)))
+    for i in param:
+        modeln.add(i)
+    modeln.add(Dense(10, activation='softmax'))                                 # Последний слой содержит 10 нейронов (т.к. 10 типов одежды).
+    modeln.compile(optimizer = 'adam', loss = 'categorical_crossentropy', metrics = ['accuracy']) # Задаём параметры обучения.
+    history = modeln.fit(x_train, y_train, validation_data=(x_v, y_v), epochs=epochs, batch_size=batch_size, verbose=0) # Обучаем сеть.
+    v_a = history.history['val_accuracy'][-1]                                   # Получаем точность на проверочных (валидационных) данных.
+    t_a = modeln.evaluate(x_test, y_test, verbose=0)[1]                         # получаем точность на тестовых данных.
+    ans.append({'НС': len(ans) + 1, 'Точность на проверочной выборке': v_a, 'Точность на тестовой выборке': t_a})
+
+# Задаём различные архитектуры для 9 НС:
+m_a = [[Dense(64, activation='relu')], [Dense(64, activation='sigmoid'), BatchNormalization()], [Dense(64, activation='relu'), Dropout(0.4)],
+      [Dense(128, activation='relu'), Dense(64, activation='sigmoid')], [Dense(128, activation='relu'), BatchNormalization()], [Dense(128, activation='relu'), Dropout(0.4)],
+      [Dense(256, activation='relu'), Dense(128, activation='sigmoid')], [Dense(256, activation='relu'), BatchNormalization()], [Dense(256, activation='relu'), Dropout(0.3)]]
+for j in (m_a):
+    func(j)
+table = pd.DataFrame(ans)                                                       # Оформляем в виде таблицы.
+print(table)                                                                    # Выводим таблицу на экран.
+
+'''
+Проанализировав результаты в таблице, можно заметить, что точность везде примерно одна и та же на проверочной и тестовой выборках. 
+В целом точность получилась не самая высокая, но и не маленькая. 
+Можем видеть, что точность на тестовой выборке меньше, нежели точность на проверочной. 
+При построении НС точность на тестовой имеет большую значимость.
+'''
+
+#Задание 2. Используя модуль datasets библиотеки sklearn, загрузите базу вин (.load_wine()).
+'''
+Используя шаблон ноутбука, выполните загрузку, подготовку и предобработку данных. Обязательное условие: разделение данных на три выборки осуществляется по шаблону (изменять параметры подготовки данных запрещается)!
+Проведите серию экспериментов и добейтесь максимальной точности классификации на тестовой выборке выше 94%.
+С помощью метода .summary() зафиксируйте количество параметров созданной вами нейронной сети.
+'''
+
+# Последовательная модель НС
+from tensorflow.keras.models import Sequential
+
+# Основные слои
+from tensorflow.keras.layers import Dense, Activation, Dropout, BatchNormalization
+
+# Утилиты для to_categorical()
+from tensorflow.keras import utils
+
+# Алгоритмы оптимизации для обучения модели
+from tensorflow.keras.optimizers import Adam, SGD
+
+# Библиотека для работы с массивами
+import numpy as np
+
+# Отрисовка графиков
+import matplotlib.pyplot as plt
+
+# Разделение данных на выборки
+from sklearn.model_selection import train_test_split
+
+# Для загрузки датасета
+from sklearn.datasets import load_wine
+
+# Отрисовка изображений в ноутбуке, а не в консоли или файле
+%matplotlib inline
+
+'''
+Описание базы
+Датасет состоит из набора данных о винах и их классах.
+Данные по одному вину хранятся в numpy-массиве x_data: (13 параметров).
+В датасете 3 класса вин: y_data.
+Количество примеров: 178.
+'''
+
+x_data = load_wine()['data']              # Загрузка набора данных о винах
+y_data = load_wine()['target']            # Загрузка классов вин
+
+print('Размерность x_data -', x_data.shape)
+print('Размерность y_data -', y_data.shape)
+print()
+
+# Вывод примера данных
+print('Данные по первому вину:',x_data[0])
+print('Класс вина:',y_data[0])
+
+# Перевод в one hot encoding
+y_data = utils.to_categorical(y_data, 3)
+
+# Разбиение наборов на общую и тестовую выборки
+x_all, x_test, y_all, y_test = train_test_split(x_data,
+                                                y_data,
+                                                test_size=0.1,
+                                                shuffle=True,
+                                                random_state = 6)
+
+# Разбиение общей выборки на обучающую и проверочную
+x_train, x_val, y_train, y_val = train_test_split(x_all,
+                                                  y_all,
+                                                  test_size=0.1,
+                                                  shuffle=True,
+                                                  random_state = 6)
+
+print(x_train.shape)
+print(y_train.shape)
+print()
+print(x_val.shape)
+print(y_val.shape)
+
+from tensorflow.keras.utils import to_categorical
+
+model2 = Sequential()                                                           # Создаём полносвязную модель.
+model2.add(Dense(128, input_dim = 13, activation = 'relu'))                     # Добавляем скрытый слой с 128 нейронами и функцией активации 'relu'.
+model2.add(BatchNormalization())
+model2.add(Dropout(0.2))
+model2.add(Dense(64, activation = 'relu'))                                      # Добавляем скрытый слой с 64 нейронами и функцией активации 'relu'.
+model2.add(Dense(3, activation = 'softmax'))                                    # Добавляем выходной слой с 3 нейронами и функцией активации 'softmax'.
+
+
+model2.compile(optimizer = Adam(learning_rate = 0.001), loss = 'categorical_crossentropy', metrics = ['accuracy'])  # Задаём параметры обучения модели.
+model2.fit(x_train, y_train, validation_data = (x_val, y_val), epochs = 60, batch_size = 10, verbose = 1) # Обучаем модель.
+acc = model2.evaluate(x_test, y_test, verbose = 0)[1]
+model2.summary()
+print(f"Точность на тестовой выборке: {acc}")
+
+#Добились неплохой точности на тестовой выборке.
+
+#Задание 3.
+'''
+Используя базу "Пассажиры автобуса", подготовьте данные для обучения нейронной сети, классифицирующей изображение на два класса:
+
+входящий пассажир
+выходящий пассажир
+Добейтесь точности работы модели на проверочной выборке не ниже 85%
+
+Ссылка на датасет: https://storage.yandexcloud.net/aiueducation/Content/base/l4/bus.zip
+'''
+
+import os
+import numpy as np
+import shutil
+from sklearn.model_selection import train_test_split
+import tensorflow as tf
+from tensorflow.keras.utils import to_categorical
+# Подключение модуля для загрузки данных из облака
+import gdown
+
+# Загрузка zip-архива с датасетом из облака на диск виртуальной машины colab
+gdown.download(' https://storage.yandexcloud.net/aiueducation/Content/base/l4/bus.zip', None, quiet=True)
+
+# Разархивация датасета в директорию 'content/cars'
+!unzip -qo "bus.zip" -d /content/bus
+
+# Папка с папками картинок, рассортированных по категориям
+IMAGE_PATH = '/content/bus'
+
+# Для работы с файлами
+import os
+os.listdir(IMAGE_PATH)
+
+# Определение списка имен классов
+CLASS_LIST = sorted(os.listdir(IMAGE_PATH))
+
+# Определение количества классов
+CLASS_COUNT = len(CLASS_LIST)
+
+# Проверка результата
+print(f'Количество классов: {CLASS_COUNT}, метки классов: {CLASS_LIST}')
+
+from PIL import Image                     # Отрисовка изображений
+import random                             # Генерация случайных чисел
+import matplotlib.pyplot as plt           # Отрисовка графиков
+
+%matplotlib inline
+
+i = 1
+
+# Формирование пути к выборке одной марки авто
+print(f'{IMAGE_PATH}/{CLASS_LIST[i]}/')
+
+for cls in CLASS_LIST:
+    print(cls, ':', os.listdir(f'{IMAGE_PATH}/{cls}/'))
+
+# Создание заготовки для изображений всех классов
+fig, axs = plt.subplots(1, CLASS_COUNT, figsize=(25, 5))
+
+# Для всех номеров классов:
+for i in range(CLASS_COUNT):
+    # Формирование пути к папке содержимого класса
+    fl_path = f'{IMAGE_PATH}/{CLASS_LIST[i]}/'
+    # Выбор случайного фото из i-го класса
+    img_path = fl_path + random.choice(os.listdir(fl_path))
+    # Отображение фотографии (подробнее будет объяснено далее)
+    axs[i].set_title(CLASS_LIST[i])
+    axs[i].imshow(Image.open(img_path))
+    axs[i].axis('off')
+
+# Отрисовка всего полотна
+plt.show()
+
+data_files = []                           # Cписок путей к файлам картинок
+data_labels = []                          # Список меток классов, соответствующих файлам
+
+for class_label in range(CLASS_COUNT):    # Для всех классов по порядку номеров (их меток)
+    class_name = CLASS_LIST[class_label]  # Выборка имени класса из списка имен
+    class_path = IMAGE_PATH +'/'+ class_name  # Формирование полного пути к папке с изображениями класса
+    class_files = os.listdir(class_path)  # Получение списка имен файлов с изображениями текущего класса
+    print(f'Размер класса {class_name} составляет {len(class_files)}')
+
+    # Добавление к общему списку всех файлов класса с добавлением родительского пути
+    data_files += [f'{class_path}/{file_name}' for file_name in class_files]
+
+    # Добавление к общему списку меток текущего класса - их ровно столько, сколько файлов в классе
+    data_labels += [class_label] * len(class_files)
+
+print('Общий размер базы для обучения:', len(data_labels))
+
+print('Пути к файлам: \n', data_files[1085:1090])
+print('Их метки классов:\n', data_labels[1085:1090])
+
+# Задание единых размеров изображений
+
+IMG_WIDTH = 128                           # Ширина изображения
+IMG_HEIGHT = 64                           # Высота изображения
+
+import numpy as np                        # Библиотека работы с массивами
+
+data_images = []                          # Пустой список для данных изображений
+
+for file_name in data_files:
+    # Открытие и смена размера изображения
+    img = Image.open(file_name).resize((IMG_WIDTH, IMG_HEIGHT))
+    img_np = np.array(img)                # Перевод в numpy-массив
+    data_images.append(img_np)            # Добавление изображения в виде numpy-массива к общему списку
+
+x_data = np.array(data_images)            # Перевод общего списка изображений в numpy-массив
+y_data = np.array(data_labels)            # Перевод общего списка меток класса в numpy-массив
+
+print(f'В массив собрано {len(data_images)} фотографий следующей формы: {img_np.shape}')
+print(f'Общий массив данных изображений следующей формы: {x_data.shape}')
+print(f'Общий массив меток классов следующей формы: {y_data.shape}')
+
+x_data[0]
+
+# Нормированние массива изображений
+x_data = x_data / 255.
+
+# Подключение нужных слоев из модуля tensorflow.keras.layers
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.layers import Dropout, BatchNormalization
+
+# Перевод в one hot encoding
+y_data = utils.to_categorical(y_data, 3)
+
+# Разбиение наборов на общую и тестовую выборки
+x_all, x_test, y_all, y_test = train_test_split(x_data,
+                                                y_data,
+                                                test_size=0.1,
+                                                shuffle=True,
+                                                random_state = 6)
+
+# Разбиение общей выборки на обучающую и проверочную
+x_train, x_val, y_train, y_val = train_test_split(x_all,
+                                                  y_all,
+                                                  test_size=0.1,
+                                                  shuffle=True,
+                                                  random_state = 6)
+
+from tensorflow.keras.utils import to_categorical
+
+model3 = Sequential()                                                           # Создаём полносвязную модель.
+model3.add(Dense(128, input_dim = 128, activation = 'relu'))                     # Добавляем скрытый слой с 128 нейронами и функцией активации 'relu'.
+model3.add(BatchNormalization())
+model3.add(Dropout(0.2))
+model3.add(Dense(64, activation = 'relu'))                                      # Добавляем скрытый слой с 64 нейронами и функцией активации 'relu'.
+model3.add(Dense(3, activation = 'softmax'))                                    # Добавляем выходной слой с 3 нейронами и функцией активации 'softmax'.
+
+
+model3.compile(optimizer = Adam(learning_rate = 0.001), loss = 'categorical_crossentropy', metrics = ['accuracy'])  # Задаём параметры обучения модели.
+model3.fit(x_train, y_train, validation_data = (x_val, y_val), epochs = 60, batch_size = 10, verbose = 1) # Обучаем модель.
+acc = model3.evaluate(x_test, y_test, verbose = 0)[1]
+model3.summary()
+print(f"Точность на тестовой выборке: {acc}")
+
