@@ -1,0 +1,53 @@
+#Задача 1: Создайте переменную my_complex и присвойте ей значение комплексного числа 3 + 4j. Выведите значение этой переменной на экран в формате "my_complex = значение".
+
+my_complex = complex(3, 4)
+print('my_complex =', my_complex)
+
+#Задача 2: Преобразуйте переменную my_integer в строку и сохраните результат в переменной string_value. Выведите результат на экран.
+
+print('my_integer =', my_integer)
+string_value = str(my_integer)
+print('string_value =', string_value)
+
+#Задача 3: Создайте переменную my_string_new и присвойте ей значение my_string в верхнем регистре. Выведите результат на экран.
+
+my_string_new = my_string.upper()
+print('my_string_new =', my_string_new)
+
+#Задача 4: Получите первые 5 символов из строки my_string и сохраните их в переменной substring. Выведите substring на экран.
+
+substring = my_string[:6]
+print('substring =', substring)
+
+#Задача 5: Создайте новую строку new_string с помощью replace, заменив все "l" на "z" в my_string. Выведите new_string на экран.
+
+new_string = my_string.replace('l', 'z')
+print('new_string =', new_string)
+
+#Задача 6: Найдите длину строки my_string.
+
+print("Длина строки my_string =", len(my_string))
+
+#Задача 7: Создайте новую переменную concatenated_string, которая содержит конкатенацию my_string и string_value. Выведите результат на экран.
+
+concatenated_string = my_string + string_value
+print('concatenated_string =', concatenated_string)
+
+#Задача 8: Выведите каждый второй символ из строки my_string.
+
+print("Строка my_string =",my_string)
+print("Каждый второй символ строки my_string:", my_string[1::2])
+
+#Задача 9: Проверьте, содержит ли строка my_string подстроку 'world'. Выведите "Найден!" или "Не найден!" в зависимости от результата проверки.
+
+check_string = 'world'
+
+if check_string in my_string:
+    print('Найден!')
+else:
+    print('Не найден!')
+
+#Задача 10: Создайте переменную name_uppercase, которая будет содержать значение name в верхнем регистре. Выведите приветствие, используя f-строки, с использованием name_uppercase.
+
+name_uppercase = name.upper()
+print(f'Привет, {name_uppercase}!')
