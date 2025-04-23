@@ -1,0 +1,82 @@
+#Добавляем необходимые библиотеки:
+import numpy as np  # для работы с многомерными массивами;
+import sympy as sp  # для работы с интегралами и производными;
+import matplotlib.pyplot as plt # для визуализации результатов;
+x = sp.Symbol('x')
+print("Введите число частей разбиения отрезка времени и размерность проекционного подпространства:" )
+n = int(input())  # n - на сколько частей делим отрезок времени;
+m = int(input())  # m - размерность проекционного подпространства;
+T = 1/n           # задаём диаметр разбиения;
+
+# Функция, вычисляющая скалярное произведение.
+def func_1(f, g):
+    return sp.integrate((f * g), (x, 0, 1))
+
+# Функция, реализующая форму на элементах.
+def func_2(f, g):
+    return sp.integrate((sp.diff(f) * sp.diff(g)), (x, 0, 1))
+
+# Функция, строящая функции из проекционного подпространства.
+def w(i):
+    return sp.sin(i * sp.pi * x)
+
+# Функция, возвращающая правую часть для заданного t.
+def f(t):
+    return (2*sp.pi*sp.cos(2 * sp.pi * t)*x*(x - 1) - 
+    2*sp.sin(2 * sp.pi * t))
+
+# Функция, реализующая точное решение задачи.
+def u(t, x):
+    return (sp.sin(2 * sp.pi * t) * x * (x - 1))
+
+# Функция, возвращающая значение элемента приближённого решения.
+def u_k(x, k):
+    result = 0
+    for i in range(m):
+        result += Solve[i + k*m] * np.sin((i + 1) * np.pi * x)
+    return result
+
+t_r = np.zeros(n + 1) # Массив элементов разбиения промежутка 
+                      # времени [0, 1].
+for i in range(len(t_r)):  # Заполнение массива t_r.
+    t_r[i] = i * T
+print("Разбиение отрезка времени [0, 1]:\n", t_r)
+print()
+
+# Матрица A - левая часть системы.
+A = np.zeros(((n + 1) * m, (n + 1) * m))   
+# Задание элементов матрицы A:
+for i in range(m):
+    A[i][i] = round((-(1 / T) * func_1(w(i + 1), w(i + 1))), 8)
+    A[i][i + m] = round(((1 / T) * func_1(w(i + 1), w(i + 1)) + 
+    func_2(w(i + 1), w(i + 1))), 8)
+for i in range(m, len(A[:,0]) - m):
+    A[i][i] = A[i - m][i - m]
+    A[i][i + m] = A[i - m][i]
+for i in range(len(A[:,0]) - m, len(A[:,0])):
+    A[i][i - len(A[:,0]) + m] = 1
+    A[i][i] = -1
+
+# Вектор-столбец b - правая часть системы.
+b = np.zeros((len(A[:,0]), 1)) 
+# Заполнение вектора-столбца b.
+for i in range(len(b) - m):
+    b[i] = round(func_1(f(t_r[i//m + 1]), w((i % m) + 1)), 8)
+print("Правая часть имеет вид:\n", b)
+print()
+Solve = np.around(np.linalg.solve(A, b), 8) # Поиск решения.
+print("Решение системы:\n", Solve)    # Вывод решения на экран.
+# Визуализация решений задачи.
+x = np.linspace(0, 1, 50)
+for k in range(n + 1):
+    # Графики точного решения:
+    plt.plot(x, u(t_r[k], x), label=f'u(t{k}, x)', color='orange')
+    # Графики приближённого решения:
+    plt.plot(x, u_k(x, k), label=f'u{k}(x)', color='green', 
+    linestyle='--')
+    plt.legend()
+    plt.grid(linestyle='--')
+    plt.title('Графики решений', weight='bold')
+    plt.xlabel("Ось X", color='blue')
+    plt.ylabel("Ось Y", color='blue')
+    plt.show()
