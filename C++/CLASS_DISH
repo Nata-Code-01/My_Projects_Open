@@ -1,0 +1,437 @@
+
+#include<Windows.h>
+#include<iostream>
+#include<fstream>
+using namespace std;
+//------------------------------------------------Базовый класс "Блюдо"--------------------------------------------------------------------
+class dish {                                               
+protected:                                                 // Защищённые поля класса dish:
+	char name[50];                                            // название блюда;
+	float weight;                                             // вес блюда;
+	float price;                                              // цена блюда.
+public:                                                    // Открытые поля класса.  
+	dish(char* n,int w,int p)                                 // Конструктор 1 класса dish.
+	{
+		strcpy_s(name, n);
+		weight = w;
+		price = p;
+		cout << "\nКонструктор 1 для класса dish.\n";
+	}
+	dish()                                                    // Конструктор 2 класса dish.
+	{
+		strcpy_s(name,"\0");
+		weight = 0;
+		price = 0;
+		cout << "\nКонструктор 2 для класса dish.\n";
+	}
+	// Чисто виртуальные функции базового класса:
+	virtual void input_from_file(ifstream& fin)=0;            // Фунция для считывания информации из файла.                  
+	virtual void output()=0;                                  // Функция для вывода объекта на экран.
+	virtual void output_name() = 0;                           // Функция для вывода поля name.
+	virtual float Price() = 0;                                // Функция "Доступ к полю "цена"".
+	virtual void Time(int t_h, int t_m) = 0;                  // Функция для вывода объекта в зависимости от вводимого времени.
+};
+//-----------------------------------------------Конец базового класса "Блюдо"-------------------------------------------------------------
+
+//-------------------------------------------Производные классы от класса "Блюдо"----------------------------------------------------------
+
+//Класс "Блюдо на завтрак":
+
+class dish_breakfast:public dish {                             
+public:                                                        // Открытые поля класса "Блюдо на завтрак".
+	dish_breakfast(char* n, int w, int p) : dish(n,w,p)           // Конструктор 1 для класса "Блюдо на завтрак".
+	{
+		cout << "\nКонструктор 1 для dish_breakfast.\n";
+	}
+
+	dish_breakfast() :dish()                                      // Конструктор 2 для класса "Блюдо на завтрак".
+	{
+		cout << "\nКонструктор 2 для dish_breakfast.\n";
+	}
+	void input_from_file(ifstream& fin)                        // Фунция для считывания информации из файла.
+	{
+		fin.getline(name, 50);
+		fin >> weight;
+		fin.get();
+		fin >> price;
+		fin.get();
+	}
+	void output()                                              // Функция для вывода объекта на экран.
+	{
+		cout << name << endl;
+		cout << "Вес: " << weight << " грамм.\n";
+		cout << "Цена: " << price << " рублей.\n" << endl;
+	}
+	void output_name()                                         // Функция для вывода поля name.
+	{
+		cout << name;
+	}
+	float Price()                                              // Функция "Доступ к полю "цена"".
+	{
+		return price;
+	}
+	void Time(int t_h, int t_m)                                // Функция для вывода объекта в зависимости от вводимого времени.
+	{
+		if ((t_h >= 8) && ((t_h < 11) || (t_h == 11 && t_m == 0)))
+			cout <<"\nБлюдо на завтрак: "<< name << endl;
+	}
+	dish_breakfast operator =(const dish_breakfast& w)         // Перегруженный оператор для конструктора копии.
+	{
+		if (&w == this)
+			return *this;
+		for (int i = 0; i < 50; i++)
+			name[i] = w.name[i];
+		weight = w.weight;
+		price = w.price;
+		return *this;
+	}
+};
+
+//Класс "Блюдо из основного меню":
+
+class dish_base :public dish {                                 // Открытые поля класса "Блюдо из основного меню".
+protected:
+	char comp[200];
+public:
+	dish_base(char* n, int w, int p,char *c) :dish(n, w, p)       // Конструктор 1 для класса "Блюдо из основного меню".
+	{
+		strcpy_s(comp, c);
+		cout << "\nКонструктор 1 для dish_base\n";
+	}
+	dish_base() :dish()                                           // Конструктор 2 для класса "Блюдо из основного меню".
+	{
+		strcpy_s(comp, "\0");
+		cout<<"Конструктор 2 для dish_base\n";
+	}
+	void input_from_file(ifstream& fin)                        
+	{
+		fin.getline(name, 50);
+		fin >> weight;
+		fin.get();
+		fin.getline(comp, 200);
+		fin >> price;
+		fin.get();
+	}
+	void output()                                              
+	{
+		cout << name << endl;
+		cout << "Вес: " << weight << " грамм.\n";
+		cout << comp << endl;
+		cout << "Цена: " << price << " рублей.\n" << endl;
+	}
+	void output_name()                                         
+	{
+		cout<<name;
+	}
+	float Price()                                              
+	{
+		return price;
+	}
+	void Time(int t_h, int t_m)                                
+	{
+		cout << "\nБлюдо из оcновного меню: " << name << endl;
+	}
+	dish_base operator =(const dish_base& w)                 // Перегруженный оператор для конструктора копии.
+	{
+		if (&w == this)
+			return *this;
+		for (int i = 0; i < 50; i++)
+			name[i] = w.name[i];
+		weight = w.weight;
+		price = w.price;
+		for (int i = 0; i < 200; i++)
+		{
+			comp[i] = w.comp[i];
+		}
+
+		return *this;
+	}
+};
+
+//Производный класс dish_business_lunch от базового класса dish_base:
+
+class dish_business_lunch:public dish_base {                  
+	char kat[50];                                             // категория блюда.
+public:
+	dish_business_lunch(char* n, int w, int p, char* c, char* k) :dish_base(n, w, p,c)     // Конструктор 1 для класса dish_business_lunch.
+	{
+		strcpy_s(kat, k);
+		cout << "\nКонструктор 1 для dish_business_lunch\n";
+	}
+	dish_business_lunch() :dish_base()                                                     // Конструктор 2 для класса dish_business_lunch.
+	{
+		strcpy_s(kat, "\0");
+	}
+	void input_from_file(ifstream& fin)
+	{
+		dish_base::input_from_file(fin);
+		fin.getline(kat, 50);
+	}
+	void output()
+	{
+		dish_base::output();
+		cout << kat << endl << endl;
+	}
+	void output_name()
+	{
+		cout << name;
+	}
+	float Price()
+	{
+		return price;
+	}
+	void Time(int t_h, int t_m)
+	{
+		if((t_h >= 12) && ((t_h < 16) || (t_h == 16 && t_m == 0)))
+			cout <<"\nБлюдо для бизнес-ланча: "<< name << endl;
+	}
+	dish_business_lunch operator =(const dish_business_lunch& w)                           // Перегруженный оператор для конструктора копии.
+	{
+		if (&w == this)
+			return *this;
+		for (int i = 0; i < 50; i++)
+			name[i] = w.name[i];
+		weight = w.weight;
+		price = w.price;
+		for (int i = 0; i < 200; i++)
+		{
+			comp[i] = w.comp[i];
+		}
+		for (int i = 0; i < 50; i++)
+		{
+			kat[i] = w.kat[i];
+		}
+		return *this;
+	}
+};
+
+//-------------------------------------------------------------------------------------------------------------------------
+
+int main()
+{
+	SetConsoleCP(1251);
+	SetConsoleOutputCP(1251);
+	ifstream fin("Меню.txt");                                              // Доступ к файлу "Меню.txt".
+	if (!fin) { cout << "File not found"; return 1; }
+	const int n = 12;
+	dish* p[n];                                                            // Создание массива объектов.
+	char what[30];                                                         // Строка-определитель типа класса.
+	for (int i = 0; i < n; i++)
+	{
+		fin.getline(what, 30);
+		if (strcmp(what, "Блюдо на завтрак") == 0) 
+			p[i] = new dish_breakfast;
+		else if (strcmp(what,"Блюдо из основного меню") == 0) 
+			p[i] = new dish_base;
+		else if (strcmp(what, "Блюдо для бизнес-ланча") == 0)
+			p[i] = new dish_business_lunch;
+		else 
+		{
+			cout << "Некорректные данные в файле"; 
+			return 1;
+		}
+		p[i]->input_from_file(fin);                                        // Заполнение массива объектов информацией из файла.
+	}
+	const int r = 50;
+	int mas[r];                                               // Массив, хранящий номера выбранных пользователем блюд.
+	for (int i = 0; i < r; i++)
+	{
+		mas[i] = -1;
+	}
+	float summ = 0;                                           // Счётчик общей стоимости выбранных пользователем блюд.
+	bool l = false;                                           // Переменная для предостережения от неверного удаления.
+	bool While = true;
+	while (While)  //---------------------------------------Цикл - "Меню"------------------------------------
+	{
+		cout << endl;
+		cout << "Что необходимо сделать?\n";
+		cout << "1) Вывести всю информацию о блюдах.\n";
+		cout << "2) Вывести список блюд.\n";
+		cout << "3) Вывести отсортированный список блюд.\n";
+		cout << "4) Вывести информацию о конкретном блюде.\n";
+		cout << "5) Добавить блюдо.\n";
+		cout << "6) Удалить блюдо.\n";
+		cout << "7) Вывести общую стоимость выбранных блюд.\n";
+		cout << "8) Вывести список блюд, доступных к заказу в определённое время.\n";
+		cout << "9) Закончить.\n";
+		cout << endl;
+		cout << "Список блюд:\n";
+		for (int i = 0; i < n; i++)
+		{
+			cout << i + 1 << ") ";
+			p[i]->output_name();
+			cout << endl;
+		}
+		cout << endl;
+		cout << endl;
+		int f = 0;                                            // Переменная, хранящая информацию о номере выбираемого блюда.
+		int v = 0;                                            // Счётчик выбираемых действий.
+		cin >> v;
+		switch (v)
+		{
+		case 1:                                               // Вывод массива объектов.
+			for (int i = 0; i < n; i++)
+			{
+				cout << i + 1 << ")";
+				p[i]->output();
+			}
+			cout << endl;
+			break;
+		case 2:                                               // Вывод полей "name" всех объектов массива.
+			cout << "Список блюд:\n";
+			for (int i = 0; i < n; i++)
+			{
+				cout << i + 1 << ") ";
+				p[i]->output_name();
+				cout << endl;
+			}
+			break;
+		case 3:                                               // Сортировка списка объектов по полю "name".     
+			cout << "Отсортированный список:\n";
+			dish* s[n];
+			for (int i = 0; i < n; i++)
+			{
+				s[i] = p[i];
+			}
+			for (int i = 0; i < n - 1; i++)
+			{
+				for (int j = 0; j < n - 1 - i; j++)
+				{
+					if (strcmp(s[j + 1]->Name(), s[j]->Name()) == -1)
+					{
+						dish *temp = s[j+1];
+						s[j+1] = s[j];
+						s[j] = temp;
+					}
+				}
+
+			}
+			for (int i = 0; i < n; i++)                                // Вывод отсортированного списка.
+			{
+				cout << i + 1 << ") ";
+				s[i]->output_name();
+				cout << endl;
+			}
+			cout << endl;
+			break;
+		case 4:                                               // Вывод информации об одном объекте.
+			cout << "Информацию о каком блюде необходимо вывести(введите номер блюда из списка)?\n";
+			cin >> f;
+			p[f - 1]->output();
+			cout << endl;
+			break;
+		case 5:                                               // Выбор объекта(суммирование цены).
+			cout << "Какое блюдо добавить в заказ(введите номер из списка)?\n";
+			cin >> f;
+			if ((f < 1) || (f > 12))
+			{
+				cout << "Такого блюда в списке нет.\n";
+				break;
+			}
+			summ += p[f - 1]->Price();
+			for (int i = 0; i < r; i++)                       // Заполнение элемента массива номером выбранного блюда.
+			{
+				if (mas[i] == -1)
+				{
+					mas[i] = f;
+
+					break;
+				}
+			}
+			cout << endl;
+			break;
+		case 6:                                               // Удаления объекта(изменение общей суммы).
+			if (summ == 0)
+			{
+				cout << "Вы ещё не добавили ни одного блюда.\n";
+				break;
+			}
+			cout << "Какое блюдо удалить из заказа(введите номер из списка)?\n";
+			cin >> f;
+			if ((f < 1) || (f > 12))
+			{
+				cout << "Такого блюда в списке нет.\n";
+				break;
+			}
+			for (int i = 0; i < r; i++)
+			{
+				if (mas[i] == f)
+				{
+					l = true;
+					mas[i] = -1;
+				}
+			}
+			if (!l)
+			{
+				cout << "Такого блюда в заказе нет.\n";
+				break;
+			}
+			else
+			{
+				summ -= p[f - 1]->Price();
+			}
+			l = false;
+			cout << endl;
+			break;
+		case 7:                                               // Вывод общей стоимости и списка выбранных пользователем объектов.
+			if (summ == 0)
+			{
+				cout << "Вы не добавили ни одного блюда.\n";
+				break;
+			}
+			cout << "Ваш заказ: ";
+			for (int i = 0; i < r; i++)
+			{
+				if (mas[i] != -1)
+				{
+					int j = mas[i];
+					p[j - 1]->output_name();
+					cout << " - ";
+					float k = p[j - 1]->Price();
+					cout << k << " рублей";
+					bool a = 0;
+					for (int g = i + 1; g < r; g++)
+					{
+						if (mas[g] != -1)
+							a = 1;
+					}
+					if (a == 1)
+						cout << ',' << '\t';
+					else
+						cout << '.';
+				}
+			}
+			cout << endl;
+			cout << "Общая стоимость выбранных блюд:\n";
+			cout << summ << " рублей.\n";
+			break;
+		case 8:                                               // Вывод списка блюд, доступных к заказу в определённое время.
+			int time_hour;
+			int time_minute;
+			cout << "Введите время(часы,минуты):\n";
+			cin >> time_hour >> time_minute;
+			if (time_hour < 0 || time_hour>24 || time_minute < 0 || time_minute >= 60)
+			{
+				cout << "Некорректный ввод времени.\n";
+				break;
+			}
+			cout << "В данное время доступны для заказа:\n";
+			for (int i = 0; i < n; i++)
+			{
+				p[i]->Time(time_hour, time_minute);
+			}
+			break;
+		case 9:                                                // Выход из цикла - "Меню".
+			While = false;
+			break;
+		default:                                               // Предостережение.
+			cout << "Неккоректно задан запрос. Введите номер пунка от 1 до 8.\n";
+			break;
+		}
+
+	}
+	system("pause");
+	return 0;
+}
+//------------------------------------------------------------------------------------------------------------------------------------------
+
