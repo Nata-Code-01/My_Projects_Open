@@ -1,0 +1,77 @@
+'''
+Определить и классифицировать бифуркации, которые возникают при изменении параметра $\mu$ в системе:
+$$ \left\{ \begin{aligned} &\dot{x_1} = x_2, \\  &\dot{x_2} = \mu - x_2 - x_1^2 - 2x_1x_2. \\ \end{aligned} \right.$$
+'''
+
+import numpy as np
+import matplotlib.pyplot as plt
+import sympy as sp
+
+mu, x1, x2 = sp.symbols('mu x1 x2')
+
+eq1 = x2                                                # Наша система.
+eq2 = mu - x2 - x1**2 - 2*x1*x2
+
+Eq1 = sp.Eq(eq1, 0)                                     # Поиск стационарных точек.
+Eq2 = sp.Eq(eq2, 0)
+
+Mu = np.linspace(-1, 2, 200)                            # Определяем значения параметра.
+x1_p = []
+x1_m = []
+
+for i in Mu:
+    solution = sp.solve([Eq1, Eq2.subs(mu, i)], [x1, x2])
+    for sol in solution:
+        x1_val = sol[0]
+        if x1_val.is_real:
+            x1_p.append((i, np.sqrt(i)))                # Устойчивый узел
+            x1_m.append((i, -np.sqrt(i)))               # Седло
+                   
+Y_p, X_p = zip(*x1_p)                       
+Y_m, X_m = zip(*x1_m)
+
+# Построение диаграммы
+plt.figure()
+plt.plot(Y_p, X_p, label='Устойчивый узел', color='blue')
+plt.plot(Y_m, X_m, label='Седло', color='red', linestyle='--')
+plt.axvline(0, color='black', linestyle='-') 
+plt.xlabel('$\mu$')
+plt.ylabel('$x_1$')
+plt.title('Диаграмма стационарных решений системы.')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+def system(X, mu):                            # Функция, задающая нашу систему.
+    x1, x2 = X
+    dx1dt = x2
+    dx2dt = mu - x2 - x1**2 - 2*x1*x2
+    return np.array([dx1dt, dx2dt])
+
+    x1 = np.linspace(-3, 3, 20)                   # Создание сетки.
+x2 = np.linspace(-3, 3, 20)
+X1, X2 = np.meshgrid(x1, x2)
+
+DX1, DX2 = np.zeros(X1.shape), np.zeros(X2.shape)
+
+for mu in ([-1.0, 0.0 , 1.0]):               # Задаём параметр системы.
+
+    for i in range(X1.shape[0]):
+        for j in range(X1.shape[1]):
+            x_dot = system([X1[i, j], X2[i, j]], mu)
+            DX1[i, j] = x_dot[0]
+            DX2[i, j] = x_dot[1]
+
+    # Построение фазового портрета:
+
+    plt.figure()
+    plt.streamplot(X1, X2, DX1, DX2, color='b', density=2)
+    plt.xlim(-3, 3)
+    plt.ylim(-3, 3)
+    plt.title(f'Фазовый портрет системы для μ = {mu}')
+    plt.xlabel('$x_1$')
+    plt.ylabel('$x_2$')
+    plt.axhline(0, color='black', lw=1.0, ls='--')
+    plt.axvline(0, color='black', lw=1.0, ls='--')
+    plt.grid()
+    plt.show()
